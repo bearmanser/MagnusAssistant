@@ -1,0 +1,38 @@
+.mic-shadow {
+  width: 400px;
+  height: 400px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 100%;
+  z-index: 1;
+  animation: shadow-rotate 10s linear infinite;
+  transform-origin: center;
+  transition: all 0.5s ease;
+  box-shadow:
+    10px -55px 30px 15px #823ca6,
+    24px -10px 47px 10px #aab3d2,
+    -21px -25px 97px 10px #5acee3,
+    51px 5px 17px 10px #1b7d8f,
+    3px 2px 77px 10px #f30bf5;
+}
+
+.listening .mic-shadow {
+  top: 50%;
+  animation: shadow-rotate 2s linear infinite;
+  box-shadow:
+    10px -55px 30px 15px #823ca6,
+    24px -10px 47px 10px #aab3d2,
+    -21px -25px 97px 10px #5acee3,
+    51px 5px 17px 10px #1b7d8f,
+    3px 2px 77px 10px #f30bf5;
+}
+
+@keyframes shadow-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

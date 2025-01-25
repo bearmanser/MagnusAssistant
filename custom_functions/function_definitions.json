@@ -1,0 +1,143 @@
+[
+    {
+        "name": "get_current_datetime",
+        "description": "Gets the current datetime",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "name": "get_current_weather",
+        "description": "Gets the current weather in a given location for a specific time",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "datetime": {
+                    "description": "The specific date and time for the weather data in ISO 8601 format",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "The city and state, e.g. Oslo",
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "The unit of temperature",
+                    "enum": [
+                        "celsius",
+                        "fahrenheit"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location"
+            ]
+        }
+    },
+    {
+        "name": "get_entity_ids",
+        "description": "Gets a list of all entity ids in the Home Assistant system",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "chunk_number": {
+                    "description": "The chunk number to return. Starts from 1. Optional",
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "chunk_size": {
+                    "description": "The number of entity ids to return in one chunk. Optional",
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "entity_type": {
+                    "description": "The type of entity to filter by, e.g., light, switch, sensor. Optional",
+                    "type": "string"
+                },
+                "force_refresh": {
+                    "default": false,
+                    "description": "Force fetching fresh data from the API instead of using cached data. Reccomened if the data has not been fetched in a while. Optional",
+                    "type": "boolean"
+                }
+            },
+            "required": []
+        }
+    },
+    {
+        "name": "call_service",
+        "description": "Calls a Home Assistant service to control a device or automation",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "description": "The domain of the service, e.g., light, switch, automation",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "The ID of the entity to control, e.g., light.living_room",
+                    "type": "string"
+                },
+                "service": {
+                    "description": "The service to call, e.g., turn_on, turn_off",
+                    "type": "string"
+                },
+                "service_data": {
+                    "description": "Additional data needed for the service, e.g., brightness, temperature. Optional",
+                    "type": "object"
+                }
+            },
+            "required": [
+                "domain",
+                "service",
+                "entity_id"
+            ]
+        }
+    },
+    {
+        "name": "get_entity_state",
+        "description": "Gets the current state of a specific entity in Home Assistant",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "entity_id": {
+                    "description": "The ID of the entity, e.g., light.living_room",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "entity_id"
+            ]
+        }
+    },
+    {
+        "name": "get_services",
+        "description": "Gets a list of all services available in Home Assistant.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "chunk_number": {
+                    "description": "The chunk number to return. Starts from 1. Optional",
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "chunk_size": {
+                    "description": "The number of services to return in one chunk. Optional",
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "force_refresh": {
+                    "default": false,
+                    "description": "Force fetching fresh data from the API instead of using cached data. Reccomened if the data has not been fetched in a while. Optional",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "chunk_size",
+                "chunk_number"
+            ]
+        }
+    }
+]

@@ -1,0 +1,4 @@
+# Ignore specific folders
+piper_files/
+wake_word_files/
+__pycache__/
