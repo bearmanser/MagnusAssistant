@@ -11,7 +11,7 @@ from config.config import get_config_value
 from custom_functions.custom_functions import (
     get_custom_functions,
 )
-from text_to_speech.run_piper import run_piper
+from text_to_speech.run_piper import run_piper, run_piper_save_to_file
 import json
 from num2words import num2words
 
@@ -35,7 +35,7 @@ def audio_player():
             play(audio_clip)
 
 
-async def process_response(response_text, ws, assistant):
+async def process_response(response_text, ws, assistant, send_to_websocket):
     global last_desired_segment
 
     non_speech_symbols_pattern = r"(?<!\b\w)[.?!:;](?!\s|$|,)"
@@ -58,10 +58,16 @@ async def process_response(response_text, ws, assistant):
         second_last_segment = segments[-2]
         if second_last_segment != last_desired_segment and second_last_segment != "":
             last_desired_segment = second_last_segment
-            await ws.send_str(json.dumps({"response": second_last_segment.strip()}))
-            await asyncio.create_task(
-                run_piper(ws, assistant, second_last_segment.strip())
-            )
+
+            if send_to_websocket:
+                await ws.send_str(json.dumps({"response": second_last_segment.strip()}))
+                await asyncio.create_task(
+                    run_piper(ws, assistant, second_last_segment.strip())
+                )
+            else:
+                await asyncio.create_task(
+                    run_piper_save_to_file(assistant, second_last_segment.strip())
+                )
 
 
 def add_message(role, content, name=None):
@@ -107,7 +113,7 @@ def trim_conversation_history(messages, token_limit, assistant, lifetime=2):
 
 
 async def ask_openai(
-    message: str, ws, assistant, role: str = "user", function_name: str = None
+    message: str, ws, assistant, role: str = "user", function_name: str = None, send_to_websocket: bool = True
 ):
     global conversation_history
 
@@ -144,7 +150,7 @@ async def ask_openai(
         for chunk in response_stream:
             if chunk.choices[0].delta.content:
                 current_message += chunk.choices[0].delta.content
-                await process_response(current_message, ws, assistant)
+                await process_response(current_message, ws, assistant, send_to_websocket)
 
             if chunk.choices[0].delta.function_call:
                 if chunk.choices[0].delta.function_call.name:
@@ -155,15 +161,15 @@ async def ask_openai(
                     ].delta.function_call.arguments
 
         if current_message:
-            await process_response(current_message + "\n", ws, assistant)
+            await process_response(current_message + "\n", ws, assistant, send_to_websocket)
             conversation_history.append(add_message("assistant", current_message))
 
-            if current_message.rstrip().endswith("?"):
-                from websocket.websocket_handler import set_listening
-
+            if current_message.rstrip().endswith("?") and send_to_websocket:
                 time.sleep(5)
-                await set_listening(True, ws)
+                from websocket.websocket_handler import set_listening
+                await set_listening(True, ws) 
                 await ws.send_str(json.dumps({"activation": True}))
+
                 print("setting listening to True")
 
         if function_call_name and function_call_arguments_str:
@@ -173,7 +179,7 @@ async def ask_openai(
                     f"Function call triggered: {function_call_name} with arguments {function_arguments}"
                 )
                 process_function_call(
-                    function_call_name, function_arguments, ws, assistant
+                    function_call_name, function_arguments, ws, assistant, send_to_websocket
                 )
             except json.JSONDecodeError as e:
                 print(f"JSON decode error after accumulation: {e}")
@@ -184,7 +190,7 @@ async def ask_openai(
         print(e)
 
 
-def process_function_call(function_name, function_arguments, ws, assistant):
+def process_function_call(function_name, function_arguments, ws, assistant, send_to_websocket):
     module = importlib.import_module(f"custom_functions.scripts.{function_name}")
     function_to_call = getattr(module, function_name)
     try:
@@ -207,6 +213,6 @@ def process_function_call(function_name, function_arguments, ws, assistant):
             ws,
             assistant,
             role="function",
-            function_name=function_name,
+            function_name=function_name, send_to_websocket=send_to_websocket
         )
     )

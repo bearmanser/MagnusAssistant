@@ -64,5 +64,6 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
     predictions = owwModel.predict(combined_data)
 
     for key in predictions:
+        print(f"{key}: {predictions[key]}")
         if predictions[key] >= 0.7:
             return key

@@ -81,7 +81,7 @@ async def websocket_handler(request):
 
             if listening:
                 print("listening")
-                transcription = listen(msg, sample_rate)
+                transcription = listen(msg.data, sample_rate)
                 if transcription is not None and transcription != "":
 
                     listening = False

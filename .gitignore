@@ -1,3 +1,7 @@
 
 **/__pycache__/
 /node_modules
+/addons
+/.vscode
+audio_files/recorded_audio.wav
+/ha_data

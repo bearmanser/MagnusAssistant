@@ -1,15 +1,14 @@
 import webrtcvad
 import collections
 from pydub import AudioSegment
-from pydub.playback import play
 from transcribe.transcribe import transcribe
 
 vad = webrtcvad.Vad()
-vad.set_mode(1)  # 0: Very sensitive, 3: Aggressive filtering
+vad.set_mode(3)  # Aggressive filtering to reduce false positives
 
 audio_buffer = collections.deque()
 frame_duration_ms = 30  # ms frames for VAD processing
-silence_threshold_ms = 500  # Reduced silence threshold to consider the end of speech
+silence_threshold_ms = 500  # Silence streak threshold in ms
 
 
 def frame_generator(audio_data, sample_rate):
@@ -21,13 +20,15 @@ def frame_generator(audio_data, sample_rate):
 
 def listen(msg, sample_rate, volume_threshold=-60):
     global audio_buffer
-    audio_buffer.extend(msg.data)
+    audio_buffer.extend(msg)
 
     audio_segment = AudioSegment(
         data=bytes(audio_buffer), sample_width=2, frame_rate=sample_rate, channels=1
     )
 
-    print(f"Volume: {audio_segment.dBFS}")
+    # High-pass and low-pass filtering to remove unwanted noise
+    audio_segment = audio_segment.high_pass_filter(200).low_pass_filter(4000)
+
     if audio_segment.dBFS < volume_threshold:
         audio_buffer.clear()
         return None
@@ -51,17 +52,14 @@ def listen(msg, sample_rate, volume_threshold=-60):
 
         if is_speech:
             voiced_frames.append(frame)
-            silence_streak = max(
-                0, silence_streak - (frame_duration_ms // 2)
-            )  # Silence streak with detected speech
+            silence_streak = max(0, silence_streak - (frame_duration_ms // 2))
         else:
             silence_streak += frame_duration_ms
 
         if silence_streak >= silence_threshold_ms and voiced_frames:
             audio_buffer.clear()
             print("Transcribing audio...")
-            # play(audio_segment)
-
+            audio_segment.export("audio_files/recorded_audio.wav", format="wav")
             return transcribe(audio_segment)
 
     return None

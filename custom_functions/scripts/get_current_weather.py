@@ -34,7 +34,7 @@ def get_current_weather(location, unit="celsius", datetime=None):
 
         "unit": unit,
 
-        "datetime": datetime,
+        "datetime": datetime.isoformat() if datetime else None,
 
         "weather_data": weather_data,
 
