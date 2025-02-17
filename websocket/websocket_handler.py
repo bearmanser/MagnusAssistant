@@ -10,7 +10,7 @@ import openai
 
 from config.config import get_config_value
 from listen.listen import listen
-from transcribe.handle_transcribtion_result import handle_transcription_result
+from openai_api.openai_api import ask_openai
 from wake_word.predict import predict, recent_volumes, recent_data
 
 sample_rate = 48000
@@ -21,16 +21,6 @@ listening_start_time = None
 async def set_listening(value, ws):
     global listening
     listening = value
-    # try:
-    #     while True:
-    #         msg = await asyncio.wait_for(ws.receive(), timeout=1)
-    #         print(msg.type)
-    #         if (
-    #             msg.type == aiohttp.WSMsgType.CLOSE
-    #             or msg.type == aiohttp.WSMsgType.CLOSED
-    #         ):
-    #             break
-    #     pass
 
 
 async def websocket_handler(request):
@@ -87,7 +77,7 @@ async def websocket_handler(request):
                     listening = False
                     print("Sending transcription")
                     await ws.send_str(json.dumps({"transcription": transcription}))
-                    await handle_transcription_result(transcription, ws, assistant)
+                    await ask_openai(transcription, ws, assistant=assistant)
 
     except asyncio.TimeoutError:
         raise TimeoutError("WebSocket connection timed out")

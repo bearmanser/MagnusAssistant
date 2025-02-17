@@ -4,12 +4,14 @@ from pydub import AudioSegment
 from transcribe.transcribe import transcribe
 
 vad = webrtcvad.Vad()
-vad.set_mode(3)  # Aggressive filtering to reduce false positives
+vad.set_mode(1)
 
 audio_buffer = collections.deque()
 frame_duration_ms = 30  # ms frames for VAD processing
 silence_threshold_ms = 500  # Silence streak threshold in ms
+noise_floor_buffer = 10  # dB above noise floor to consider valid speech
 
+dynamic_threshold = None
 
 def frame_generator(audio_data, sample_rate):
     """Generates fixed-size audio frames from a continuous stream."""
@@ -18,31 +20,34 @@ def frame_generator(audio_data, sample_rate):
         yield audio_data[i : i + frame_size]
 
 
-def listen(msg, sample_rate, volume_threshold=-60):
-    global audio_buffer
+def calculate_dynamic_threshold(audio_segment):
+    """Calculate dynamic threshold based on the first second of the audio."""
+    noise_floor = audio_segment[:1000].dBFS 
+    return noise_floor + 10
+
+
+def listen(msg, sample_rate):
+    global audio_buffer, dynamic_threshold
     audio_buffer.extend(msg)
 
     audio_segment = AudioSegment(
         data=bytes(audio_buffer), sample_width=2, frame_rate=sample_rate, channels=1
     )
 
-    # High-pass and low-pass filtering to remove unwanted noise
-    audio_segment = audio_segment.high_pass_filter(200).low_pass_filter(4000)
+    if len(audio_segment) >= 1000 and dynamic_threshold is None:
+        dynamic_threshold = calculate_dynamic_threshold(audio_segment)
+        print(f"Initial Dynamic Threshold: {dynamic_threshold:.2f} dBFS")
 
-    if audio_segment.dBFS < volume_threshold:
+    if dynamic_threshold is not None and audio_segment.dBFS < dynamic_threshold:
         audio_buffer.clear()
         return None
 
     normalized_audio = audio_segment
     normalized_audio_bytes = normalized_audio.raw_data
-
     frames = list(frame_generator(normalized_audio_bytes, sample_rate))
 
     silence_streak = 0
     voiced_frames = []
-
-    if audio_segment.duration_seconds < 3:
-        return None
 
     for frame in frames:
         if len(frame) < int(sample_rate * frame_duration_ms / 1000) * 2:
@@ -57,9 +62,10 @@ def listen(msg, sample_rate, volume_threshold=-60):
             silence_streak += frame_duration_ms
 
         if silence_streak >= silence_threshold_ms and voiced_frames:
-            audio_buffer.clear()
             print("Transcribing audio...")
             audio_segment.export("audio_files/recorded_audio.wav", format="wav")
+            audio_buffer.clear()
+            dynamic_threshold = None
             return transcribe(audio_segment)
 
     return None
