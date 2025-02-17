@@ -23,7 +23,6 @@ export function Settings() {
   const sendConfig = async () => {
     if (config) {
       const configToSend: ConfigType = {
-        home_assistant: config.home_assistant,
         openai: config.openai,
       };
 
@@ -74,45 +73,6 @@ export function Settings() {
                   ))}
                 </Select>
               </Center>
-            </Box>
-          </Flex>
-        </CardBody>
-      </Card>
-      <Card w={'70%'} h={'70%'} bg={'main.100'} boxShadow={'lg'} align={'center'} p={8}>
-        <CardHeader>
-          <Heading>Home Assistant</Heading>
-        </CardHeader>
-        <CardBody w={'100%'} h={'100%'}>
-          <Flex h={'100%'} textAlign={'center'} justifyContent={'center'} flexDirection={'column'} gap={8}>
-            <Box>
-              <Text>URL</Text>
-              <Input
-                placeholder="Home Assistant URL"
-                w={'50%'}
-                value={config?.home_assistant?.api_url || ''}
-                onChange={(e) =>
-                  setConfig((prevConfig) =>
-                    prevConfig
-                      ? { ...prevConfig, home_assistant: { ...prevConfig.home_assistant, api_url: e.target.value } }
-                      : null,
-                  )
-                }
-              />
-            </Box>
-            <Box>
-              <Text>Token</Text>
-              <Input
-                placeholder="Home Assistant token"
-                w={'50%'}
-                value={config?.home_assistant?.api_key || ''}
-                onChange={(e) =>
-                  setConfig((prevConfig) =>
-                    prevConfig
-                      ? { ...prevConfig, home_assistant: { ...prevConfig.home_assistant, api_key: e.target.value } }
-                      : null,
-                  )
-                }
-              />
             </Box>
           </Flex>
         </CardBody>

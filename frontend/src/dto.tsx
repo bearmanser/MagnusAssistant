@@ -3,7 +3,6 @@ export type FullConfigType = ConfigType & {
 };
 
 export type ConfigType = {
-  home_assistant: homeAssistantType;
   openai: openaiType;
 };
 

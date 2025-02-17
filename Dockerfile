@@ -15,8 +15,6 @@ COPY config/ /app/config/
 COPY custom_functions/ /app/custom_functions/
 COPY endpoints/ /app/endpoints/
 COPY frontend/ /app/frontend/
-COPY ha_data/ /app/ha_data/
-COPY home_assistant/ /app/home_assistant/
 COPY intent_recognition/ /app/intent_recognition/
 COPY listen/ /app/listen/
 COPY openai_api/ /app/openai_api/

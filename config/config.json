@@ -1,8 +1,4 @@
 {
-    "home_assistant": {
-        "api_url": "http://homeassistant.local:8123/api",
-        "api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwNzMwN2EzYWJkNTc0ZjVkOTFiMDJlNGU2NGMxZTZlMyIsImlhdCI6MTcyNDM0MjMwMiwiZXhwIjoyMDM5NzAyMzAyfQ.KXfGqTu1WbFvoAfEfI_qAA08soIM7aScaXvGzNXopLQ"
-    },
     "openai": {
         "api_key": "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",
         "model": "gpt-4o-mini"
