@@ -1,15 +1,14 @@
 import os
 import requests_cache
 
-api_key = os.getenv("HOME_ASSISTANT_TOKEN")
-api_url = os.getenv("HOME_ASSISTANT_URL")
-headers = {
-    "Authorization": f"Bearer {api_key}",
+HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
+HOME_ASSISTANT_URL = os.getenv("HOME_ASSISTANT_URL")
+HEADERS = {
+    "Authorization": f"Bearer {HOME_ASSISTANT_TOKEN}",
     "Content-Type": "application/json",
 }
 
-# Setup cache with a 24-hour expiration
-session = requests_cache.CachedSession('ha_cache', expire_after=86400)
+SESSION = requests_cache.CachedSession('temp/ha_cache', expire_after=86400)
 
 def get_entity_state(entity_id, force_refresh=False):
     """
@@ -24,11 +23,11 @@ def get_entity_state(entity_id, force_refresh=False):
     state (dict): The current state of the entity if successful, otherwise None.
     """
     if force_refresh:
-        session.cache.clear()
+        SESSION.cache.clear()
     
     # Make the request to get the entity state
-    url = f"{api_url}/states/{entity_id}"
-    response = session.get(url, headers=headers, expire_after=60)
+    url = f"{HOME_ASSISTANT_URL}/states/{entity_id}"
+    response = SESSION.get(url, headers=HEADERS, expire_after=60)
 
     # Check the response status
     if response.status_code == 200:

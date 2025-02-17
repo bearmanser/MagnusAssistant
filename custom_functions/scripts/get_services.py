@@ -1,15 +1,14 @@
 import os
 import requests_cache
 
-api_key = os.getenv("HOME_ASSISTANT_TOKEN")
-api_url = os.getenv("HOME_ASSISTANT_URL")
-headers = {
-    "Authorization": f"Bearer {api_key}",
+HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
+HOME_ASSISTANT_URL = os.getenv("HOME_ASSISTANT_URL")
+HEADERS = {
+    "Authorization": f"Bearer {HOME_ASSISTANT_TOKEN}",
     "Content-Type": "application/json",
 }
 
-# Setup cache with a 24-hour expiration
-session = requests_cache.CachedSession('ha_cache', expire_after=86400)
+SESSION = requests_cache.CachedSession('temp/ha_cache', expire_after=86400)
 
 def get_services(chunk_size=None, chunk_number=None, force_refresh=False):
     """
@@ -25,9 +24,9 @@ def get_services(chunk_size=None, chunk_number=None, force_refresh=False):
         list: A list of services.
     """
     if force_refresh:
-        session.cache.clear()
+        SESSION.cache.clear()
 
-    response = session.get(f"{api_url}/services", headers=headers)
+    response = SESSION.get(f"{HOME_ASSISTANT_URL}/services", headers=HEADERS)
     
     if response.status_code == 200:
         services = response.json()

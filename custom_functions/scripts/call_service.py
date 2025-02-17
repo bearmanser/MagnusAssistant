@@ -1,15 +1,14 @@
 import os
 import requests_cache
 
-api_key = os.getenv("HOME_ASSISTANT_TOKEN")
-api_url = os.getenv("HOME_ASSISTANT_URL")
-headers = {
-    "Authorization": f"Bearer {api_key}",
+HOME_ASSISTANT_TOKEN = os.getenv("HOME_ASSISTANT_TOKEN")
+HOME_ASSISTANT_URL = os.getenv("HOME_ASSISTANT_URL")
+HEADERS = {
+    "Authorization": f"Bearer {HOME_ASSISTANT_TOKEN}",
     "Content-Type": "application/json",
 }
 
-# Setup cache with a 24-hour expiration
-session = requests_cache.CachedSession('ha_cache', expire_after=86400)
+SESSION = requests_cache.CachedSession('temp/ha_cache', expire_after=86400)
 
 def call_service(domain, service, entity_id, service_data=None, force_refresh=False):
     """
@@ -27,15 +26,15 @@ def call_service(domain, service, entity_id, service_data=None, force_refresh=Fa
     response (dict): Response from the Home Assistant API.
     """
     if force_refresh:
-        session.cache.clear()
+        SESSION.cache.clear()
     
     payload = {"entity_id": entity_id}
     
     if service_data:
         payload.update(service_data)
     
-    url = f"{api_url}/services/{domain}/{service}"
-    response = session.post(url, headers=headers, json=payload)
+    url = f"{HOME_ASSISTANT_URL}/services/{domain}/{service}"
+    response = SESSION.post(url, headers=HEADERS, json=payload)
     
     if response.status_code == 200:
         return response.json()

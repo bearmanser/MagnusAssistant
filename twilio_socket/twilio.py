@@ -11,9 +11,9 @@ from config.config import get_config_value
 from listen.listen import listen
 from openai_api.openai_api import ask_openai
 
-TWILIO_ACCOUNT_SID = "AC75bc256b702bb7dcbf11a3bf106dd52f"
-TWILIO_AUTH_TOKEN = "08d1c66592b1f9e336007641bc8c610c"
-client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+CLIENT = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 RECORDING_FILE = "recorded_audio.wav"
 AUDIO_FOLDER = "audio_files"
@@ -111,14 +111,14 @@ async def ws_handler(request):
                                     <Redirect>{PUBLIC_BASE_URL}/next-twiml</Redirect>
                                 </Response>"""
         try:
-            client.calls(local_call_sid).update(twiml=twiml_response)
+            CLIENT.calls(local_call_sid).update(twiml=twiml_response)
             print(f"Updated call {local_call_sid} with redirect to /next-twiml.")
         except Exception as e:
             print("Error updating call:", e)
     else:
         if active_stream["call_sid"]:
             try:
-                client.calls(active_stream["call_sid"]).update(
+                CLIENT.calls(active_stream["call_sid"]).update(
                     twiml=f"""<Response>
                                     <Redirect>{PUBLIC_BASE_URL}/next-twiml</Redirect>
                                 </Response>"""
