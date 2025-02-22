@@ -42,7 +42,6 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
 
     rms_volume = np.sqrt(np.mean(data**2))
     recent_volumes.append(rms_volume)
-    avg_recent_volume = np.mean(recent_volumes)
 
     if (
         rms_volume < min_volume_threshold
@@ -57,13 +56,11 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
     if sample_rate != 16000:
         data = resampy.resample(data, sample_rate, 16000)
 
-    # Add the current data to recent_data and combine the last 3 messages
     recent_data.append(data)
     combined_data = np.concatenate(list(recent_data))
 
     predictions = owwModel.predict(combined_data)
 
     for key in predictions:
-        print(f"{key}: {predictions[key]}")
-        if predictions[key] >= 0.7:
+        if predictions[key] >= 0.5:
             return key

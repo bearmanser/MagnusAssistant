@@ -11,14 +11,14 @@ from config.config import get_config_value
 from listen.listen import listen
 from openai_api.openai_api import ask_openai
 
-TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+PUBLIC_BASE_URL = get_config_value("twilio.base_url")
+TWILIO_ACCOUNT_SID = get_config_value("twilio.account_sid")
+TWILIO_AUTH_TOKEN = get_config_value("twilio.auth_token")
 CLIENT = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 RECORDING_FILE = "recorded_audio.wav"
 AUDIO_FOLDER = "audio_files"
 
-PUBLIC_BASE_URL = "https://bc00-2a01-799-1661-6d00-d0e5-ee7f-8ca1-92fd.ngrok-free.app"
 
 stream_available = asyncio.Event()
 stream_available.set()
@@ -96,7 +96,7 @@ async def ws_handler(request):
     finally:
         try:
             if transcription:
-                assistant = get_config_value("assistants")["0"]
+                assistant = get_config_value("twilio.assistant")
                 asyncio.create_task(
                     ask_openai(transcription, None, assistant, send_to_websocket=False)
                 )
@@ -229,7 +229,8 @@ app.router.add_post("/next-twiml", next_twiml)
 
 
 def start_twilio():
-    web.run_app(app, port=8765)
+    if PUBLIC_BASE_URL and TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+        web.run_app(app, port=8765)
 
 
 if __name__ == "__main__":

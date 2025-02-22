@@ -4,6 +4,7 @@ export type FullConfigType = ConfigType & {
 
 export type ConfigType = {
   openai: openaiType;
+  twilio: twilioType;
 };
 
 export type homeAssistantType = {
@@ -14,6 +15,13 @@ export type homeAssistantType = {
 export type openaiType = {
   api_key: string;
   model: string;
+};
+
+export type twilioType = {
+  assistant: string;
+  base_url: string;
+  account_sid: string;
+  auth_token: string;
 };
 
 export type AssistantsType = {

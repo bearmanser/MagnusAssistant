@@ -22,7 +22,7 @@ url_to_voice_files = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0
 def save_assistant():
     assistant_data = json.loads(request.form["assistant_data"])
 
-    with open(path_to_config_json, "r") as f:
+    with open(path_to_config_json, "r", encoding="utf-8") as f:
         config_data = json.load(f)
 
     for id in assistant_data.keys():
@@ -73,7 +73,7 @@ def save_assistant():
 def delete_assistant():
     assistant_id = request.get_data(as_text=True)
 
-    with open(path_to_config_json, "r") as f:
+    with open(path_to_config_json, "r", encoding="utf-8") as f:
         config_data = json.load(f)
 
     if assistant_id in config_data["assistants"]:
@@ -97,7 +97,7 @@ def delete_assistant():
 def save_config():
     new_config_data = request.get_json().get("config")
 
-    with open(path_to_config_json, "r") as f:
+    with open(path_to_config_json, "r", encoding="utf-8") as f:
         config = json.load(f)
 
     config.update(new_config_data)
@@ -111,7 +111,7 @@ def save_config():
 @app.route("/config", methods=["GET"])
 def get_config():
     try:
-        with open(path_to_config_json, "r") as f:
+        with open(path_to_config_json, "r", encoding="utf-8") as f:
             config_data = f.read()
         return config_data
 
@@ -139,14 +139,14 @@ def get_voices():
 
 @app.route("/get_custom_commands", methods=["GET"])
 def get_custom_commands():
-    with open("custom_functions/function_definitions.json", "r") as f:
+    with open("custom_functions/function_definitions.json", "r", encoding="utf-8") as f:
         function_definitions = json.load(f)
 
     for id, function in enumerate(function_definitions):
         _ = {"function_definition": function}
 
         if os.path.exists(f"custom_functions/scripts/{function['name']}.py"):
-            with open(f"custom_functions/scripts/{function['name']}.py", "r") as f:
+            with open(f"custom_functions/scripts/{function['name']}.py", "r", encoding="utf-8") as f:
                 _["python_code"] = f.read()
         else:
             _["python_code"] = ""
@@ -161,7 +161,7 @@ def custom_command():
     data = request.get_json()
     function_definitions = []
 
-    with open("custom_functions/function_definitions.json", "r") as f:
+    with open("custom_functions/function_definitions.json", "r", encoding="utf-8") as f:
         function_definitions = json.load(f)
 
     function_definitions = [
@@ -205,7 +205,7 @@ def delete_custom_command():
     key = request.get_data(as_text=True)
     function_definitions = []
 
-    with open("custom_functions/function_definitions.json", "r") as f:
+    with open("custom_functions/function_definitions.json", "r", encoding="utf-8") as f:
         function_definitions = json.load(f)
 
     function_definitions = [
