@@ -72,6 +72,7 @@ HOME_ASSISTANT_TOKEN=your-home-assistant-token
 ```
 
 ## Usage
+The web GUI will start with the server and run on port 3000.
 Once running, access the web GUI to configure settings and interact with the assistant.
 
 ## License
