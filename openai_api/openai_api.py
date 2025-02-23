@@ -164,14 +164,6 @@ async def ask_openai(
             await process_response(current_message + "\n", ws, assistant, send_to_websocket)
             conversation_history.append(add_message("assistant", current_message))
 
-            if current_message.rstrip().endswith("?") and send_to_websocket:
-                time.sleep(5)
-                from websocket.websocket_handler import set_listening
-                await set_listening(True, ws) 
-                await ws.send_str(json.dumps({"activation": True}))
-
-                print("setting listening to True")
-
         if function_call_name and function_call_arguments_str:
             try:
                 function_arguments = json.loads(function_call_arguments_str)
