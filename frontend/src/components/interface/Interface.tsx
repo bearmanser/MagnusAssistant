@@ -296,9 +296,6 @@ export function Interface() {
         <GridItem w="100%">
           <Box
             className={`mic ${listening ? 'listening' : ''}`}
-            onClick={() => {
-              setListening(!listening);
-            }}
           >
             <Box opacity={listening ? '100%' : '5%'} className="mic-shadow" />
           </Box>
