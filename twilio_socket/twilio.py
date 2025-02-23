@@ -10,11 +10,13 @@ from twilio.rest import Client
 from config.config import get_config_value
 from listen.listen import listen
 from openai_api.openai_api import ask_openai
+from text_to_speech.run_piper import run_piper_save_to_file
 
 PUBLIC_BASE_URL = get_config_value("twilio.base_url")
 TWILIO_ACCOUNT_SID = get_config_value("twilio.account_sid")
 TWILIO_AUTH_TOKEN = get_config_value("twilio.auth_token")
 CLIENT = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+ASSISTANT = get_config_value(f'assistants.{get_config_value("twilio.assistant")}')
 
 RECORDING_FILE = "recorded_audio.wav"
 AUDIO_FOLDER = "audio_files"
@@ -96,9 +98,8 @@ async def ws_handler(request):
     finally:
         try:
             if transcription:
-                assistant = get_config_value("twilio.assistant")
                 asyncio.create_task(
-                    ask_openai(transcription, None, assistant, send_to_websocket=False)
+                    ask_openai(transcription, None, ASSISTANT, send_to_websocket=False)
                 )
         except Exception as file_err:
             print("Error processing transcription:", file_err)
@@ -162,16 +163,16 @@ async def serve_audio(request):
 
 async def greeting(request):
     filename = os.path.join(AUDIO_FOLDER, "greeting.wav")
-    if os.path.exists(filename):
-        try:
-            with open(filename, "rb") as f:
-                file_data = f.read()
-            return web.Response(body=file_data, content_type="audio/wav")
-        except Exception as e:
-            print(f"Error serving file {filename}: {e}")
-            return web.Response(status=500, text="Error serving file.")
-    else:
-        return web.Response(status=404, text="File not found.")
+    if not os.path.exists(filename):
+        await run_piper_save_to_file(ASSISTANT, "Hello there, how can i help you?", file_name="greeting.wav")
+
+    try:
+        with open(filename, "rb") as f:
+            file_data = f.read()
+        return web.Response(body=file_data, content_type="audio/wav")
+    except Exception as e:
+        print(f"Error serving file {filename}: {e}")
+        return web.Response(status=500, text="Error serving file.")
 
 
 async def next_twiml(request):
@@ -230,6 +231,9 @@ app.router.add_post("/next-twiml", next_twiml)
 
 def start_twilio():
     if PUBLIC_BASE_URL and TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+        if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
+            os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
+            
         web.run_app(app, port=6000)
 
 

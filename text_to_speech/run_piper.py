@@ -32,7 +32,8 @@ async def run_piper_save_to_file(
     assistant,
     text: str = "I didn't get any text to speak.",
     output_folder: str = "audio_files",
-    duration_threshold: int = 20
+    duration_threshold: int = 20,
+    file_name: str | None = None
 ):
     start_time = time.time()
     sanitized_text = text.replace("\n", " ").replace("\r", "")
@@ -40,19 +41,22 @@ async def run_piper_save_to_file(
     output_folder = os.path.abspath(output_folder)
     os.makedirs(output_folder, exist_ok=True)
 
-    highest_number = 0
-    for filename in os.listdir(output_folder):
-        base, ext = os.path.splitext(filename)
-        if ext.lower() == ".wav":
-            try:
-                num = int(base)
-                if num > highest_number:
-                    highest_number = num
-            except ValueError:
-                continue
+    if not file_name: 
+        highest_number = 0
+        for filename in os.listdir(output_folder):
+            base, ext = os.path.splitext(filename)
+            if ext.lower() == ".wav":
+                try:
+                    num = int(base)
+                    if num > highest_number:
+                        highest_number = num
+                except ValueError:
+                    continue
 
-    new_number = highest_number + 1
-    output_file_path = os.path.join(output_folder, f"{new_number}.wav")
+        new_number = highest_number + 1
+        output_file_path = os.path.join(output_folder, f"{new_number}.wav")
+    else:
+        output_file_path = os.path.join(output_folder, file_name)
 
     total_duration = get_total_duration(output_folder)
 
