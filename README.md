@@ -36,7 +36,7 @@ python main.py
 docker build -t virtual-assistant .
 
 # Run the container
-docker run -p 3000:3000 -p 4000:4000 -p 5000:5000 -p 6000:6000 --env-file .env --gpus "device=0" virtual-assistant
+docker run -p 3000:3000 -p 4000:4000 -p 5000:5000 -p 6000:6000 -gpus "device=0" virtual-assistant
 ```
 
 ## Twilio Setup (Optional)
@@ -72,6 +72,7 @@ HOME_ASSISTANT_TOKEN=your-home-assistant-token
 ```
 
 ## Usage
+The web GUI will start with the server and run on port 3000.
 Once running, access the web GUI to configure settings and interact with the assistant.
 
 ## License
