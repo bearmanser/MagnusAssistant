@@ -15,13 +15,13 @@ COPY config/ /app/config/
 COPY custom_functions/ /app/custom_functions/
 COPY endpoints/ /app/endpoints/
 COPY frontend/ /app/frontend/
-COPY intent_recognition/ /app/intent_recognition/
 COPY listen/ /app/listen/
 COPY openai_api/ /app/openai_api/
 COPY text_to_speech/ /app/text_to_speech/
 COPY transcribe/ /app/transcribe/
 COPY wake_word/ /app/wake_word/
 COPY websocket/ /app/websocket/
+COPY twilio_socket/ /app/twilio_socket/
 
 # Copy Python files and requirements
 COPY main.py /app/
@@ -45,6 +45,7 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 3000
 EXPOSE 4000
 EXPOSE 5000
+EXPOSE 6000
 
 # Command to run the application
 CMD ["python", "main.py"]

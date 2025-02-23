@@ -58,10 +58,6 @@ export function CustomCommands() {
     PostCustomCommand(command);
   }
 
-  useEffect(() => {
-    console.log(commands);
-  }, [commands]);
-
   return (
     <Flex w={'100%'} justifyContent={'center'} align={'center'} gap={8} h={'100%'} flexDirection={'column'}>
       <Button bg={'main.400'} color={'white'} onClick={addNewCommand}>
