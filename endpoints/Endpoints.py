@@ -231,6 +231,6 @@ def get_openai_models():
 def start_flask():
     app.run(
         host="0.0.0.0",
-        port=4000,
+        port=3001,
         ssl_context=("./frontend/cert.pem", "./frontend/key.pem"),
     )

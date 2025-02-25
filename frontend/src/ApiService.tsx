@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ConfigType } from './dto';
 
-const BASE_URL = `https://${window.location.hostname}:4000`;
+const BASE_URL = `https://${window.location.hostname}:3001`;
 
 function HandleError(error: any) {
   if (error.response) {

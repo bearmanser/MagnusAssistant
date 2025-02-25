@@ -36,7 +36,7 @@ python main.py
 docker build -t virtual-assistant .
 
 # Run the container
-docker run -p 3000:3000 -p 4000:4000 -p 5000:5000 -p 6000:6000 -gpus "device=0" virtual-assistant
+docker run -p 3000:3000 -p 3001:3001 -p 3002:3002 -p 3003:3003 -gpus "device=0" virtual-assistant
 ```
 
 ## Twilio Setup (Optional)

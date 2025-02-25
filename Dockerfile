@@ -43,9 +43,9 @@ ENV PYTHONUNBUFFERED=1
 
 # Expose necessary ports (adjust as needed)
 EXPOSE 3000
-EXPOSE 4000
-EXPOSE 5000
-EXPOSE 6000
+EXPOSE 3001
+EXPOSE 3002
+EXPOSE 3003
 
 # Command to run the application
 CMD ["python", "main.py"]
