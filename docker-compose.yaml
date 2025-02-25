@@ -1,0 +1,20 @@
+services:
+  virtual-assistant:
+    image: virtual-assistant
+    build: .
+    container_name: virtual-assistant
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+      - "3002:3002"
+      - "3003:3003"
+    env_file:
+      - .env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: ["gpu"]

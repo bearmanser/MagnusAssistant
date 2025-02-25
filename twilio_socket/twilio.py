@@ -1,6 +1,7 @@
 import asyncio
 import json
 import base64
+import ssl
 import time
 import audioop
 import os
@@ -233,8 +234,11 @@ def start_twilio():
     if PUBLIC_BASE_URL and TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
         if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
             os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
-            
-        web.run_app(app, port=6000)
+
+        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        ssl_context.load_cert_chain("frontend/cert.pem", "frontend/key.pem")
+
+        web.run_app(app, host="0.0.0.0", port=3003, ssl_context=ssl_context, handle_signals=False)
 
 
 if __name__ == "__main__":
