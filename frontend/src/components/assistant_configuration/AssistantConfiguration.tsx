@@ -1,8 +1,8 @@
-import { Box, Button, Flex } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { GetConfig } from '../../ApiService';
-import { AssistantsType } from '../../dto';
-import { AssistantCard } from './AssistantCard';
+import { Box, Button, Flex } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { GetConfig } from "../../ApiService";
+import { AssistantsType } from "../../dto";
+import { AssistantCard } from "./AssistantCard";
 
 export function AssistantConfiguration() {
   const [assistants, setAssistants] = useState<AssistantsType>({});
@@ -16,11 +16,11 @@ export function AssistantConfiguration() {
   const addNewAssistant = () => {
     setAssistants((prev) => ({
       [`${Object.keys(prev).length}`]: {
-        name: '',
-        personality: '',
-        language: 'English',
-        wake_word: 'magnus',
-        voice: '',
+        name: "",
+        personality: "",
+        language: "English",
+        wake_word: "magnus",
+        voice: "",
       },
       ...prev,
     }));
@@ -39,14 +39,26 @@ export function AssistantConfiguration() {
   }
 
   return (
-    <Flex w={'100%'} justifyContent={'center'} align={'center'} gap={8} h={'100%'} flexDirection={'column'}>
-      <Button bg={'main.400'} color={'white'} onClick={addNewAssistant}>
+    <Flex
+      w={"100%"}
+      justifyContent={"center"}
+      align={"center"}
+      gap={8}
+      h={"100%"}
+      flexDirection={"column"}
+    >
+      <Button bg={"main.400"} color={"white"} onClick={addNewAssistant}>
         New assistant
       </Button>
       {Object.entries(assistants)
         .reverse()
         .map(([id, data]) => (
-          <AssistantCard key={id} id={id} data={data} deleteAssistantFromData={deleteAssistantFromData} />
+          <AssistantCard
+            key={id}
+            id={id}
+            data={data}
+            deleteAssistantFromData={deleteAssistantFromData}
+          />
         ))}
     </Flex>
   );

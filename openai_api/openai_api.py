@@ -4,6 +4,7 @@ import importlib
 import json
 import re
 from queue import Queue
+import sys
 import time
 import openai
 from pydub.playback import play
@@ -184,6 +185,7 @@ async def ask_openai(
 
 def process_function_call(function_name, function_arguments, ws, assistant, send_to_websocket):
     module = importlib.import_module(f"custom_functions.scripts.{function_name}")
+    importlib.reload(module)
     function_to_call = getattr(module, function_name)
     try:
         if function_arguments and callable(function_to_call):

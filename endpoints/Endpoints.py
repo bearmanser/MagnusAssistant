@@ -8,6 +8,8 @@ from flask_cors import CORS
 from flask_sslify import SSLify
 import openai
 
+from twilio_socket.twilio import AUDIO_FOLDER
+
 app = Flask(__name__)
 sslify = SSLify(app)
 CORS(app, origins=["*"])
@@ -104,6 +106,9 @@ def save_config():
 
     with open(path_to_config_json, "w") as f:
         json.dump(config, f, indent=4)
+
+    if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
+        os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
 
     return {"message": "Configuration saved successfully"}
 

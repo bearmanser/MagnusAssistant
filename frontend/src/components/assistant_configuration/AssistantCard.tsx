@@ -22,6 +22,7 @@ import {
   Select,
   Text,
   Textarea,
+  useToast,
 } from '@chakra-ui/react';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { IoMdHelp } from 'react-icons/io';
@@ -45,6 +46,7 @@ export function AssistantCard({ id, data, deleteAssistantFromData }: AssistantCa
   const [wakeWordFiles, setWakeWordFiles] = useState<File[]>([]);
   const [voiceOnnxFile, setVoiceOnnxFile] = useState<File | undefined>();
   const [voiceJsonFile, setVoiceJsonFile] = useState<File | undefined>();
+  const toast = useToast();
 
   useEffect(() => {
     GetVoices().then((r) => {
@@ -89,7 +91,23 @@ export function AssistantCard({ id, data, deleteAssistantFromData }: AssistantCa
     }
 
     formData.append('assistant_data', JSON.stringify({ [id]: config }));
-    PostAssistantData(formData).then();
+    PostAssistantData(formData).then((r)=>{
+      if (!r?.error) {
+        toast({
+          title: "Assistant saved.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Error saving assistant.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    });
   }
 
   async function deleteAssistant() {

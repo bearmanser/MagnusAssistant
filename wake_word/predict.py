@@ -40,7 +40,7 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
     if data.size == 0 or np.isnan(data).any() or np.isinf(data).any():
         return None
 
-    rms_volume = np.sqrt(np.mean(data**2))
+    rms_volume = np.sqrt(np.mean(data.astype(np.float64)**2))
     recent_volumes.append(rms_volume)
 
     if (
@@ -62,5 +62,5 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
     predictions = owwModel.predict(combined_data)
 
     for key in predictions:
-        if predictions[key] >= 0.5:
+        if predictions[key] >= 0.1:
             return key

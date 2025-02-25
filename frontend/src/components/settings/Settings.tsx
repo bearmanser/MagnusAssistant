@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
   Select,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { GetConfig, GetOpenaiModels, PostConfig } from "../../ApiService";
@@ -32,6 +33,7 @@ export function Settings() {
     null
   );
   const [models, setModels] = useState<string[]>([""]);
+  const toast = useToast();
 
   useEffect(() => {
     GetConfig().then((r) => {
@@ -55,6 +57,19 @@ export function Settings() {
       const response = await PostConfig(configToSend);
       if (!response?.error) {
         setInitialConfig(config);
+        toast({
+          title: "Config saved.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Error saving config.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       }
     }
   };
@@ -166,8 +181,8 @@ export function Settings() {
                 <PopoverHeader>Twilio</PopoverHeader>
                 <PopoverBody>
                   You can leave the Twilio fields empty if you don't want to
-                  talk to your assistant via phone calls. See GitHub for
-                  more information.
+                  talk to your assistant via phone calls. See GitHub for more
+                  information.
                 </PopoverBody>
               </PopoverContent>
             </Popover>
@@ -181,34 +196,35 @@ export function Settings() {
             flexDirection={"column"}
             gap={8}
           >
-          <Box>
-            <Text>Assisant</Text>
-            <Center>
-              <Select
-                w={"50%"}
-                value={config?.twilio?.assistant || ""}
-                onChange={(e) =>
-                  setConfig((prevConfig) =>
-                    prevConfig
-                      ? {
-                          ...prevConfig,
-                          twilio: {
-                            ...prevConfig.twilio,
-                            assistant: e.target.value,
-                          },
-                        }
-                      : null
-                  )
-                }
-              >
-                {config && Object.entries(config.assistants).map(([key, model]) => (
-                  <option key={key} value={key}>
-                    {model.name}
-                  </option>
-                ))}
-              </Select>
-            </Center>
-          </Box>
+            <Box>
+              <Text>Assisant</Text>
+              <Center>
+                <Select
+                  w={"50%"}
+                  value={config?.twilio?.assistant || ""}
+                  onChange={(e) =>
+                    setConfig((prevConfig) =>
+                      prevConfig
+                        ? {
+                            ...prevConfig,
+                            twilio: {
+                              ...prevConfig.twilio,
+                              assistant: e.target.value,
+                            },
+                          }
+                        : null
+                    )
+                  }
+                >
+                  {config &&
+                    Object.entries(config.assistants).map(([key, model]) => (
+                      <option key={key} value={key}>
+                        {model.name}
+                      </option>
+                    ))}
+                </Select>
+              </Center>
+            </Box>
             <Box>
               <Text>Base URL</Text>
               <Input

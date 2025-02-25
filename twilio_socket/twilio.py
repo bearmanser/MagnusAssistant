@@ -230,9 +230,6 @@ app.router.add_post("/next-twiml", next_twiml)
 
 def start_twilio():
     if get_config_value('twilio.base_url') and get_config_value('twilio.account_sid') and get_config_value('twilio.auth_token'):
-        if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
-            os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
-
         web.run_app(app, host="0.0.0.0", port=3003, handle_signals=False)
 
 
