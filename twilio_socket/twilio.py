@@ -192,11 +192,11 @@ async def next_twiml(request):
 
     if audio_files:
         play_tags = "\n".join(
-            [f"<Play>{get_config_value("twilio.base_url")}/audio/{file}</Play>" for file in audio_files]
+            [f"<Play>{get_config_value('twilio.base_url')}/audio/{file}</Play>" for file in audio_files]
         )
         twiml_response = f"""<Response>
                                 {play_tags}
-                                <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
+                                <Redirect>{get_config_value('twilio.base_url')}/next-twiml</Redirect>
                             </Response>"""
         print(f"Returning TwiML to play files: {', '.join(audio_files)}")
     else:
@@ -207,7 +207,7 @@ async def next_twiml(request):
             stream_available.set()
             await asyncio.sleep(0.5)
         stream_available.clear()
-        wss_url = get_config_value("twilio.base_url").replace("https://", "wss://") + "/stream"
+        wss_url = get_config_value('twilio.base_url').replace("https://", "wss://") + "/stream"
         twiml_response = f"""<Response>
                                 <Start>
                                     <Stream url="{wss_url}">
@@ -229,7 +229,7 @@ app.router.add_post("/next-twiml", next_twiml)
 
 
 def start_twilio():
-    if get_config_value("twilio.base_url") and get_config_value("twilio.account_sid") and get_config_value("twilio.auth_token"):
+    if get_config_value('twilio.base_url') and get_config_value('twilio.account_sid') and get_config_value('twilio.auth_token'):
         if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
             os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
 

@@ -144,7 +144,7 @@ export function CustomCommandCard({
     setPythonCode('');
     setShellScript('');
 
-    const ws = new WebSocket(`wss://${window.location.hostname}:5000/generate_code`);
+    const ws = new WebSocket(`wss://${window.location.hostname}:3002/generate_code`);
 
     let accumulatedData = '';
 

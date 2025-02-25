@@ -32,7 +32,7 @@ export function Interface() {
     setAudioContext(context);
 
     function connectToWebSocketAndSendAudio() {
-      const ws = new WebSocket(`wss://${window.location.hostname}:5000/ws`);
+      const ws = new WebSocket(`wss://${window.location.hostname}:3002/ws`);
       ws.binaryType = 'arraybuffer';
 
       ws.onopen = () => {
