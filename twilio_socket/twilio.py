@@ -13,12 +13,6 @@ from listen.listen import listen
 from openai_api.openai_api import ask_openai
 from text_to_speech.run_piper import run_piper_save_to_file
 
-PUBLIC_BASE_URL = get_config_value("twilio.base_url")
-TWILIO_ACCOUNT_SID = get_config_value("twilio.account_sid")
-TWILIO_AUTH_TOKEN = get_config_value("twilio.auth_token")
-CLIENT = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-ASSISTANT = get_config_value(f'assistants.{get_config_value("twilio.assistant")}')
-
 RECORDING_FILE = "recorded_audio.wav"
 AUDIO_FOLDER = "audio_files"
 
@@ -99,6 +93,7 @@ async def ws_handler(request):
     finally:
         try:
             if transcription:
+                ASSISTANT = get_config_value(f'assistants.{get_config_value("twilio.assistant")}')
                 asyncio.create_task(
                     ask_openai(transcription, None, ASSISTANT, send_to_websocket=False)
                 )
@@ -108,9 +103,11 @@ async def ws_handler(request):
         stream_available.set()
         if active_stream["ws"] == ws:
             active_stream["ws"] = None
+
+    CLIENT = Client(get_config_value("twilio.account_sid"), get_config_value("twilio.auth_token"))
     if local_call_sid:
         twiml_response = f"""<Response>
-                                    <Redirect>{PUBLIC_BASE_URL}/next-twiml</Redirect>
+                                    <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
                                 </Response>"""
         try:
             CLIENT.calls(local_call_sid).update(twiml=twiml_response)
@@ -122,7 +119,7 @@ async def ws_handler(request):
             try:
                 CLIENT.calls(active_stream["call_sid"]).update(
                     twiml=f"""<Response>
-                                    <Redirect>{PUBLIC_BASE_URL}/next-twiml</Redirect>
+                                    <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
                                 </Response>"""
                 )
                 print(
@@ -165,6 +162,7 @@ async def serve_audio(request):
 async def greeting(request):
     filename = os.path.join(AUDIO_FOLDER, "greeting.wav")
     if not os.path.exists(filename):
+        ASSISTANT = get_config_value(f'assistants.{get_config_value("twilio.assistant")}')
         await run_piper_save_to_file(ASSISTANT, "Hello there, how can i help you?", file_name="greeting.wav")
 
     try:
@@ -194,11 +192,11 @@ async def next_twiml(request):
 
     if audio_files:
         play_tags = "\n".join(
-            [f"<Play>{PUBLIC_BASE_URL}/audio/{file}</Play>" for file in audio_files]
+            [f"<Play>{get_config_value("twilio.base_url")}/audio/{file}</Play>" for file in audio_files]
         )
         twiml_response = f"""<Response>
                                 {play_tags}
-                                <Redirect>{PUBLIC_BASE_URL}/next-twiml</Redirect>
+                                <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
                             </Response>"""
         print(f"Returning TwiML to play files: {', '.join(audio_files)}")
     else:
@@ -209,7 +207,7 @@ async def next_twiml(request):
             stream_available.set()
             await asyncio.sleep(0.5)
         stream_available.clear()
-        wss_url = PUBLIC_BASE_URL.replace("https://", "wss://") + "/stream"
+        wss_url = get_config_value("twilio.base_url").replace("https://", "wss://") + "/stream"
         twiml_response = f"""<Response>
                                 <Start>
                                     <Stream url="{wss_url}">
@@ -231,7 +229,7 @@ app.router.add_post("/next-twiml", next_twiml)
 
 
 def start_twilio():
-    if PUBLIC_BASE_URL and TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+    if get_config_value("twilio.base_url") and get_config_value("twilio.account_sid") and get_config_value("twilio.auth_token"):
         if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
             os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
 
