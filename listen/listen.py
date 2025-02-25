@@ -34,7 +34,7 @@ def listen(msg, sample_rate):
         data=bytes(audio_buffer), sample_width=2, frame_rate=sample_rate, channels=1
     )
 
-    if len(audio_segment) >= 1000 and dynamic_threshold is None:
+    if len(audio_segment) >= 500 and dynamic_threshold is None:
         dynamic_threshold = calculate_dynamic_threshold(audio_segment)
         print(f"Initial Dynamic Threshold: {dynamic_threshold:.2f} dBFS")
 

@@ -233,10 +233,7 @@ def start_twilio():
         if os.path.exists(os.path.join(AUDIO_FOLDER, "greeting.wav")):
             os.remove(os.path.join(AUDIO_FOLDER, "greeting.wav"))
 
-        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        ssl_context.load_cert_chain("frontend/cert.pem", "frontend/key.pem")
-
-        web.run_app(app, host="0.0.0.0", port=3003, ssl_context=ssl_context, handle_signals=False)
+        web.run_app(app, host="0.0.0.0", port=3003, handle_signals=False)
 
 
 if __name__ == "__main__":

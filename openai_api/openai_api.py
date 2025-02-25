@@ -19,7 +19,6 @@ from num2words import num2words
 last_desired_segment = ""
 audio_queue = Queue()
 conversation_history = []
-openai.api_key = get_config_value("openai.api_key")
 
 TOKEN_LIMIT = 128000
 
@@ -135,6 +134,7 @@ async def ask_openai(
     messages = trim_conversation_history(messages, TOKEN_LIMIT, assistant)
 
     try:
+        openai.api_key = get_config_value("openai.api_key")
         response_stream = openai.chat.completions.create(
             model=get_config_value("openai.model"),
             messages=messages,
