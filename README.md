@@ -76,7 +76,3 @@ Once running, access the web GUI to configure settings and interact with the ass
 
 ## License
 [Apache 2.0 License](LICENSE)
-
-## Contributing
-Pull requests are welcome.
-
