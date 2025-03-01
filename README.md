@@ -32,11 +32,10 @@ python main.py
 
 ### Using Docker
 ```sh
-# Build the Docker image
-docker build -t virtual-assistant .
+git clone https://github.com/bearmanser/MagnusAssistant
+cd MagnusAssistant
 
-# Run the container
-docker run -p 3000:3000 -p 3001:3001 -p 3002:3002 -p 3003:3003 -gpus "device=0" virtual-assistant
+docker-compose up --build
 ```
 
 ## Twilio Setup (Optional)
