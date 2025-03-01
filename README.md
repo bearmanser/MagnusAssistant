@@ -1,6 +1,6 @@
 # Virtual Assistant
 
-This is a customizable virtual assistant powered by ChatGPT. You can set up your own assistant with a unique personality, voice, and wake word. It supports multiple assistants running simultaneously and allows you to write custom Python functions that the assistant can call when needed.
+This is a customizable virtual assistant powered by ChatGPT. You can set up your own assistant with a unique personality, voice, and wake word. It supports multiple assistants running simultaneously and allows you to write custom Python functions that the assistant can call when needed. You can even talk to the assistant over the phone.
 
 ## Features
 - **Custom Personalities & Voices**: Define different assistants with unique behaviors.
