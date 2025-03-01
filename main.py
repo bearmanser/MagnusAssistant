@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 
 from flask.cli import load_dotenv
 
+from config.config import get_config_value
+from text_to_speech.run_piper import run_piper
 from twilio_socket.twilio import start_twilio
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"

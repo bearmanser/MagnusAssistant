@@ -1,11 +1,20 @@
-import { Button, Flex } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { DeleteCustomCommand, GetCustomCommands, PostCustomCommand } from '../../ApiService';
-import { CustomCommandsTypeWithPython, CustomCommandsTypeWithPythonAndShell, JsonSchemaType } from '../../dto';
-import { CustomCommandCard } from './CustomCommandCard';
+import { Button, Flex, useToast } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import {
+  DeleteCustomCommand,
+  GetCustomCommands,
+  PostCustomCommand,
+} from "../../ApiService";
+import {
+  CustomCommandsTypeWithPython,
+  CustomCommandsTypeWithPythonAndShell,
+  JsonSchemaType,
+} from "../../dto";
+import { CustomCommandCard } from "./CustomCommandCard";
 
 export function CustomCommands() {
   const [commands, setCommands] = useState<CustomCommandsTypeWithPython[]>();
+  const toast = useToast();
 
   useEffect(() => {
     GetCustomCommands().then((r) => {
@@ -16,15 +25,15 @@ export function CustomCommands() {
   function addNewCommand() {
     const newCommand: CustomCommandsTypeWithPython = {
       function_definition: {
-        name: '',
-        description: '',
+        name: "",
+        description: "",
         parameters: {
-          type: 'object' as JsonSchemaType,
+          type: "object" as JsonSchemaType,
           properties: {},
           required: [],
         },
       },
-      python_code: '',
+      python_code: "",
     };
     setCommands((prevCommands) => [newCommand, ...(prevCommands || [])]);
   }
@@ -34,14 +43,19 @@ export function CustomCommands() {
 
     if (!response?.error) {
       const filteredCommands = commands?.filter((command) => {
-        return command.function_definition.name.toLowerCase() !== key.toLowerCase();
+        return (
+          command.function_definition.name.toLowerCase() !== key.toLowerCase()
+        );
       });
 
       setCommands(filteredCommands);
     }
   }
 
-  async function saveCommand(key: string, command: CustomCommandsTypeWithPythonAndShell) {
+  async function saveCommand(
+    key: string,
+    command: CustomCommandsTypeWithPythonAndShell
+  ) {
     const updatedCommands = commands?.map((cmd) => {
       if (cmd.function_definition.name.toLowerCase() === key.toLowerCase()) {
         return {
@@ -55,12 +69,35 @@ export function CustomCommands() {
     });
     setCommands(updatedCommands);
 
-    PostCustomCommand(command);
+    PostCustomCommand(command).then((r) => {
+      if (!r?.error) {
+        toast({
+          title: "Command saved.",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Error saving command.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    });
   }
 
   return (
-    <Flex w={'100%'} justifyContent={'center'} align={'center'} gap={8} h={'100%'} flexDirection={'column'}>
-      <Button bg={'main.400'} color={'white'} onClick={addNewCommand}>
+    <Flex
+      w={"100%"}
+      justifyContent={"center"}
+      align={"center"}
+      gap={8}
+      h={"100%"}
+      flexDirection={"column"}
+    >
+      <Button bg={"main.400"} color={"white"} onClick={addNewCommand}>
         New Custom Command
       </Button>
       {commands &&

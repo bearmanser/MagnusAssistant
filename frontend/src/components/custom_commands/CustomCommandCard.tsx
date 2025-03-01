@@ -16,6 +16,7 @@ import {
   Grid,
   GridItem,
   Heading,
+  HStack,
   IconButton,
   Input,
   Popover,
@@ -34,11 +35,16 @@ import {
   Text,
   Textarea,
   Tr,
-} from '@chakra-ui/react';
-import { CodeiumEditor } from '@codeium/react-code-editor';
-import { useEffect, useState } from 'react';
-import { IoMdHelp } from 'react-icons/io';
-import { CustomCommandsType, CustomCommandsTypeWithPythonAndShell, JsonSchemaType, ParametersType } from '../../dto';
+} from "@chakra-ui/react";
+import { CodeiumEditor } from "@codeium/react-code-editor";
+import { useEffect, useState } from "react";
+import { IoMdHelp } from "react-icons/io";
+import {
+  CustomCommandsType,
+  CustomCommandsTypeWithPythonAndShell,
+  JsonSchemaType,
+  ParametersType,
+} from "../../dto";
 
 interface CustomCommandCardProps {
   name: string;
@@ -46,7 +52,10 @@ interface CustomCommandCardProps {
   parameters: ParametersType;
   python_code: string;
   deleteCommand: (key: string) => void;
-  saveCommand: (key: string, command: CustomCommandsTypeWithPythonAndShell) => void;
+  saveCommand: (
+    key: string,
+    command: CustomCommandsTypeWithPythonAndShell
+  ) => void;
 }
 
 export function CustomCommandCard({
@@ -62,24 +71,30 @@ export function CustomCommandCard({
     description,
     parameters,
   });
-  const [generateCodePrompt, setGenerateCodePrompt] = useState<string>('');
+  const [generateCodePrompt, setGenerateCodePrompt] = useState<string>("");
   const [pythonCode, setPythonCode] = useState<string>(python_code);
-  const [shellScript, setShellScript] = useState<string>('');
-  const [parameterList, setParameterList] = useState(parameters?.properties || {});
+  const [shellScript, setShellScript] = useState<string>("");
+  const [parameterList, setParameterList] = useState(
+    parameters?.properties || {}
+  );
   const [newParameter, setNewParameter] = useState<{
     name: string;
     type: JsonSchemaType;
     description: string;
   }>({
-    name: '',
-    type: 'string',
-    description: '',
+    name: "",
+    type: "string",
+    description: "",
   });
-  const [requiredList, setRequiredList] = useState<string[]>(parameters?.required || []);
+  const [requiredList, setRequiredList] = useState<string[]>(
+    parameters?.required || []
+  );
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
-    document.querySelectorAll('[aria-label="Codeium Logo"]').forEach((el) => el.remove());
+    document
+      .querySelectorAll('[aria-label="Codeium Logo"]')
+      .forEach((el) => el.remove());
   }, [generating]);
 
   const addParameter = () => {
@@ -91,7 +106,7 @@ export function CustomCommandCard({
           description: newParameter.description,
         },
       }));
-      setNewParameter({ name: '', type: 'string', description: '' });
+      setNewParameter({ name: "", type: "string", description: "" });
     }
   };
 
@@ -101,12 +116,16 @@ export function CustomCommandCard({
       delete updatedList[name];
       return updatedList;
     });
-    setRequiredList((prev: any[]) => prev.filter((req: string) => req !== name));
+    setRequiredList((prev: any[]) =>
+      prev.filter((req: string) => req !== name)
+    );
   };
 
   const toggleRequired = (name: string) => {
     setRequiredList((prev: string[]) =>
-      prev.includes(name) ? prev.filter((req: string) => req !== name) : [...prev, name],
+      prev.includes(name)
+        ? prev.filter((req: string) => req !== name)
+        : [...prev, name]
     );
   };
 
@@ -116,7 +135,7 @@ export function CustomCommandCard({
         name: command.name,
         description: command.description,
         parameters: {
-          type: 'object' as JsonSchemaType,
+          type: "object" as JsonSchemaType,
           properties: parameterList,
           required: requiredList,
         },
@@ -137,16 +156,18 @@ export function CustomCommandCard({
     this \\\`\\\`\\\`bash\n code goes here \n\\\`\\\`\\\`. Assume i dont have any pip packages, and you 
     must provide the command to install any package you use in the code. Prompt: ${prompt};`;
 
-    if (pythonCode !== '') {
+    if (pythonCode !== "") {
       updatedPrompt = updatedPrompt.concat(`\n\nCurrent code: ${pythonCode}`);
     }
 
-    setPythonCode('');
-    setShellScript('');
+    setPythonCode("");
+    setShellScript("");
 
-    const ws = new WebSocket(`wss://${window.location.hostname}:3002/generate_code`);
+    const ws = new WebSocket(
+      `wss://${window.location.hostname}:3002/generate_code`
+    );
 
-    let accumulatedData = '';
+    let accumulatedData = "";
 
     ws.onopen = () => {
       ws.send(JSON.stringify({ prompt: updatedPrompt }));
@@ -155,22 +176,26 @@ export function CustomCommandCard({
     ws.onmessage = (event) => {
       try {
         const model_payload = JSON.parse(event.data);
-        if ('code' in model_payload) {
+        if ("code" in model_payload) {
           accumulatedData += model_payload.code;
 
-          const pythonBlockMatch = accumulatedData.match(/```python\n([\s\S]*?)\n```/);
-          const bashBlockMatch = accumulatedData.match(/```bash\n([\s\S]*?)\n```/);
+          const pythonBlockMatch = accumulatedData.match(
+            /```python\n([\s\S]*?)\n```/
+          );
+          const bashBlockMatch = accumulatedData.match(
+            /```bash\n([\s\S]*?)\n```/
+          );
 
           if (pythonBlockMatch) {
             const pythonBlock = pythonBlockMatch[1];
             setPythonCode((prevCode: string) => prevCode.concat(pythonBlock));
-            accumulatedData = accumulatedData.replace(pythonBlockMatch[0], '');
+            accumulatedData = accumulatedData.replace(pythonBlockMatch[0], "");
           }
 
           if (bashBlockMatch) {
             const bashBlock = bashBlockMatch[1];
             setShellScript((prevCode: string) => prevCode.concat(bashBlock));
-            accumulatedData = accumulatedData.replace(bashBlockMatch[0], '');
+            accumulatedData = accumulatedData.replace(bashBlockMatch[0], "");
           }
         }
       } catch (e) {
@@ -179,23 +204,36 @@ export function CustomCommandCard({
     };
 
     ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
       setGenerating(false);
     };
 
     ws.onclose = () => {
-      console.log('WebSocket connection closed');
+      console.log("WebSocket connection closed");
       setGenerating(false);
     };
   }
 
   return (
-    <Card w={'70%'} h={'70%'} bg={'main.100'} boxShadow={'lg'} align={'center'} p={8}>
+    <Card
+      w={"70%"}
+      h={"70%"}
+      bg={"main.100"}
+      boxShadow={"lg"}
+      align={"center"}
+      p={8}
+    >
       <CardHeader>
         <Heading>{command.name}</Heading>
       </CardHeader>
-      <CardBody w={'100%'} h={'100%'}>
-        <Flex h={'100%'} textAlign={'center'} justifyContent={'center'} flexDirection={'column'} gap={8}>
+      <CardBody w={"100%"} h={"100%"}>
+        <Flex
+          h={"100%"}
+          textAlign={"center"}
+          justifyContent={"center"}
+          flexDirection={"column"}
+          gap={8}
+        >
           <Accordion allowToggle>
             <AccordionItem>
               <AccordionButton>
@@ -205,17 +243,22 @@ export function CustomCommandCard({
                 <AccordionIcon />
               </AccordionButton>
               <AccordionPanel pb={4}>
-                <Flex gap={4} flexDir={'column'}>
+                <Flex gap={4} flexDir={"column"}>
                   <Box>
                     <Text>Generate code</Text>
                     <Textarea
                       placeholder="Explain what you want the code to do..."
-                      w={'100%'}
+                      w={"100%"}
                       onChange={(e: { target: { value: any } }) => {
                         setGenerateCodePrompt(e.target.value);
                       }}
                     />
-                    <Button bg={'main.400'} color={'white'} mt={2} onClick={() => generateCode(generateCodePrompt)}>
+                    <Button
+                      bg={"main.400"}
+                      color={"white"}
+                      mt={2}
+                      onClick={() => generateCode(generateCodePrompt)}
+                    >
                       Generate
                     </Button>
                   </Box>
@@ -226,17 +269,39 @@ export function CustomCommandCard({
                         language="python"
                         theme="vs-dark"
                         value={pythonCode}
-                        onChange={(value: any) => setPythonCode(value ?? '')}
+                        onChange={(value: any) => setPythonCode(value ?? "")}
                         defaultValue={pythonCode}
                       />
                       <Divider />
-                      <Text>Required Libraries:</Text>
+                      <HStack>
+                        <Text>Required commands</Text>
+                        <Popover>
+                          <PopoverTrigger>
+                            <IconButton
+                              aria-label={"Required commands help"}
+                              icon={<IoMdHelp fontSize={24} />}
+                              bg={"main.400"}
+                              color={"white"}
+                              ml={4}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <PopoverArrow />
+                            <PopoverCloseButton />
+                            <PopoverHeader>Required commands</PopoverHeader>
+                            <PopoverBody>
+                              If your function requiers any bash commands to be executed you can write them here.
+                              For example, if you need to install a package you can write `pip install package_name`.
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
+                      </HStack>
                       <CodeiumEditor
                         language="bash"
                         theme="vs-dark"
                         height="60px"
                         value={shellScript}
-                        onChange={(value: any) => setShellScript(value || '')}
+                        onChange={(value: any) => setShellScript(value || "")}
                         defaultValue={shellScript}
                       />
                     </>
@@ -258,18 +323,33 @@ export function CustomCommandCard({
               <AccordionPanel pb={4}>
                 <Box>
                   <Grid templateColumns="repeat(3, 1fr)" gap={6} mb={1}>
-                    <GridItem w="100%" display="flex" alignItems="center" justifyContent="center" />
-                    <GridItem w="100%" display="flex" alignItems="center" justifyContent="center">
+                    <GridItem
+                      w="100%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    />
+                    <GridItem
+                      w="100%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
                       <Text>Function to call</Text>
                     </GridItem>
-                    <GridItem w="100%" display="flex" alignItems="center" justifyContent="center">
+                    <GridItem
+                      w="100%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
                       <Popover>
                         <PopoverTrigger>
                           <IconButton
-                            aria-label={'custom_wake_word_info'}
+                            aria-label={"custom_wake_word_info"}
                             icon={<IoMdHelp fontSize={24} />}
-                            bg={'main.400'}
-                            color={'white'}
+                            bg={"main.400"}
+                            color={"white"}
                           />
                         </PopoverTrigger>
                         <PopoverContent>
@@ -277,7 +357,8 @@ export function CustomCommandCard({
                           <PopoverCloseButton />
                           <PopoverHeader>Function to call</PopoverHeader>
                           <PopoverBody>
-                            The name of the function to be called. Must be written exactly as it is in the code.
+                            The name of the function to be called. Must be
+                            written exactly as it is in the code.
                           </PopoverBody>
                         </PopoverContent>
                       </Popover>
@@ -296,18 +377,33 @@ export function CustomCommandCard({
                 </Box>
                 <Box mt={2}>
                   <Grid templateColumns="repeat(3, 1fr)" gap={6} mb={1}>
-                    <GridItem w="100%" display="flex" alignItems="center" justifyContent="center" />
-                    <GridItem w="100%" display="flex" alignItems="center" justifyContent="center">
+                    <GridItem
+                      w="100%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    />
+                    <GridItem
+                      w="100%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
                       <Text>Description</Text>
                     </GridItem>
-                    <GridItem w="100%" display="flex" alignItems="center" justifyContent="center">
+                    <GridItem
+                      w="100%"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
                       <Popover>
                         <PopoverTrigger>
                           <IconButton
-                            aria-label={'custom_wake_word_info'}
+                            aria-label={"custom_wake_word_info"}
                             icon={<IoMdHelp fontSize={24} />}
-                            bg={'main.400'}
-                            color={'white'}
+                            bg={"main.400"}
+                            color={"white"}
                           />
                         </PopoverTrigger>
                         <PopoverContent>
@@ -315,8 +411,8 @@ export function CustomCommandCard({
                           <PopoverCloseButton />
                           <PopoverHeader>Description</PopoverHeader>
                           <PopoverBody>
-                            Describe what the function does. This is needed for the assistant to understand the
-                            function.
+                            Describe what the function does. This is needed for
+                            the assistant to understand the function.
                           </PopoverBody>
                         </PopoverContent>
                       </Popover>
@@ -343,7 +439,7 @@ export function CustomCommandCard({
                 <AccordionIcon />
               </AccordionButton>
               <AccordionPanel pb={4}>
-                <Flex gap={4} flexDir={'column'}>
+                <Flex gap={4} flexDir={"column"}>
                   <Input
                     placeholder="Parameter Name (e.g., username)"
                     value={newParameter.name}
@@ -380,7 +476,11 @@ export function CustomCommandCard({
                       }))
                     }
                   />
-                  <Button bg={'main.400'} color={'white'} onClick={addParameter}>
+                  <Button
+                    bg={"main.400"}
+                    color={"white"}
+                    onClick={addParameter}
+                  >
                     Add
                   </Button>
                   <Box>
@@ -403,7 +503,10 @@ export function CustomCommandCard({
                                 </Checkbox>
                               </Td>
                               <Td>
-                                <Button bg={'main.200'} onClick={() => removeParameter(paramName)}>
+                                <Button
+                                  bg={"main.200"}
+                                  onClick={() => removeParameter(paramName)}
+                                >
                                   Remove
                                 </Button>
                               </Td>
@@ -421,14 +524,14 @@ export function CustomCommandCard({
         <Divider m={4} />
         <Center gap={4}>
           <Button
-            bg={'main.200'}
+            bg={"main.200"}
             onClick={() => {
               deleteCommand(command.name);
             }}
           >
             Delete Custom Command
           </Button>
-          <Button bg={'main.400'} color={'white'} onClick={saveCustomCommand}>
+          <Button bg={"main.400"} color={"white"} onClick={saveCustomCommand}>
             Save Custom Command
           </Button>
         </Center>

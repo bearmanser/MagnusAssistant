@@ -201,7 +201,7 @@ export function Settings() {
               <Center>
                 <Select
                   w={"50%"}
-                  value={config?.twilio?.assistant || ""}
+                  value={config?.twilio?.assistant || "0"}
                   onChange={(e) =>
                     setConfig((prevConfig) =>
                       prevConfig

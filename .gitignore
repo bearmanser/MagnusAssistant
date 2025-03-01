@@ -7,3 +7,5 @@ audio_files/recorded_audio.wav
 /ha_data
 audio_files/greeting.wav
 /temp
+/text_to_speech/piper_linux/piper
+/audio_files
