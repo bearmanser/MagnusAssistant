@@ -1,2 +1,3 @@
 frontend/node_modules
 **/__pycache__
+text_to_speech/piper_linux/piper
