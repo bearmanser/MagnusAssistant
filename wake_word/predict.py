@@ -6,6 +6,8 @@ import resampy
 from openwakeword import Model
 import time
 
+from config.config import get_config_value
+
 wake_word_dir = "config/wake_word_files/"
 wake_word_files = [
     os.path.join(root, file_name)
@@ -40,7 +42,7 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
     if data.size == 0 or np.isnan(data).any() or np.isinf(data).any():
         return None
 
-    rms_volume = np.sqrt(np.mean(data.astype(np.float64)**2))
+    rms_volume = np.sqrt(np.mean(data.astype(np.float64) ** 2))
     recent_volumes.append(rms_volume)
 
     if (
@@ -62,5 +64,40 @@ async def predict(msg, sample_rate, min_volume_threshold=20):
     predictions = owwModel.predict(combined_data)
 
     for key in predictions:
-        if predictions[key] >= 0.1:
+        if predictions[key] >= get_assistant_from_wake_word(key).get(
+            "wake_word_sensitivity", 0.5
+        ):
             return key
+
+
+last_update_time = 0
+assistants_cache = {}
+wake_word_folder_map = {}
+
+
+def get_cache():
+    global last_update_time, assistants_cache, wake_word_folder_map
+    if time.time() - last_update_time >= 10:
+        assistants_cache = get_config_value("assistants")
+        wake_word_folder_map = {
+            file.replace(".onnx", ""): os.path.basename(root)
+            for root, _, files in os.walk("config/wake_word_files")
+            for file in files
+            if file.endswith(".onnx")
+        }
+        last_update_time = time.time()
+    return assistants_cache, wake_word_folder_map
+
+
+def get_assistant_from_wake_word(wake_word):
+    assistants_cache, wake_word_folder_map = get_cache()
+
+    folder_id = wake_word_folder_map.get(wake_word)
+    if not folder_id:
+        return None
+
+    for _, assistant_data in assistants_cache.items():
+        if assistant_data.get("wake_word") == folder_id:
+            return assistant_data
+
+    return None

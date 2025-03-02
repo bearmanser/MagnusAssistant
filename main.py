@@ -57,6 +57,7 @@ def main():
                 x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
                 x509.NameAttribute(NameOID.COMMON_NAME, host_ip),
+                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "IT"),
             ]
         )
         cert = (

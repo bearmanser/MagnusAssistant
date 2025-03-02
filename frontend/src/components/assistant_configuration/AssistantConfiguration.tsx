@@ -30,6 +30,7 @@ export function AssistantConfiguration() {
         personality: "",
         language: "English",
         wake_word: "magnus",
+        wake_word_sensitivity: 0.5,
         voice: "",
       },
       ...prev,

@@ -33,6 +33,7 @@ export type AssistantDataType = {
   personality: string;
   language: string;
   wake_word: string;
+  wake_word_sensitivity: number;
   voice: string;
 };
 

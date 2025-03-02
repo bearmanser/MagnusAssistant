@@ -253,6 +253,18 @@ export function AssistantCard({ id, data, deleteAssistantFromData }: AssistantCa
             </Flex>
           </Box>
           <Box>
+            <Text>Wake word sensitivity</Text>
+            <Input
+              placeholder="0.5 usally works well"
+              type='number'
+              w={'50%'}
+              onChange={(e) => {
+                setConfig((prev) => ({ ...prev, wake_word_sensitivity: parseFloat(e.target.value) }));
+              }}
+              defaultValue={data.wake_word_sensitivity}
+            />
+          </Box>
+          <Box>
             <Text>Voice</Text>
             <Flex w={'100%'}>
               {!useCustomVoice ? (
