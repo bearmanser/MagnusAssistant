@@ -51,7 +51,7 @@ COPY __init__.py /app/
 COPY requirements.txt /app/
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 RUN pip install debugpy
 
 # Install Node.js dependencies inside the 'frontend' folder
