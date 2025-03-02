@@ -51,7 +51,12 @@ export function AssistantCard({ id, data, deleteAssistantFromData }: AssistantCa
   useEffect(() => {
     GetVoices().then((r) => {
       if (r.error) {
-        console.error('Error:', r.error);
+        toast({
+          title: 'Error getting voices.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
       } else {
         const voicesArray = Array.isArray(r) ? r : Object.values(r);
         setVoices(voicesArray);
@@ -67,7 +72,12 @@ export function AssistantCard({ id, data, deleteAssistantFromData }: AssistantCa
     }
     GetVoiceSample(voice).then((r: HTMLAudioElement | { error: string }) => {
       if (r.error) {
-        console.error(r);
+        toast({
+          title: 'Error playing sample.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
       } else if (r instanceof Blob) {
         const audioUrl = URL.createObjectURL(r);
         const audio = new Audio(audioUrl);

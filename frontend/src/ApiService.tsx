@@ -1,15 +1,15 @@
-import axios from 'axios';
-import { ConfigType } from './dto';
+import axios from "axios";
+import { ConfigType } from "./dto";
 
 const BASE_URL = `https://${window.location.hostname}:3001`;
 
 function HandleError(error: any) {
   if (error.response) {
-    return { error: 'Server Error', statusCode: error.response.status };
+    return { error: "Server Error", statusCode: error.response.status };
   } else if (error.request) {
-    return { error: 'No response from server' };
+    return { error: "No response from server" };
   } else {
-    return { error: 'Request setup error', message: error.message };
+    return { error: "Request setup error", message: error.message };
   }
 }
 
@@ -25,14 +25,14 @@ export async function GetVoices() {
 export async function GetVoiceSample(voice: { [x: string]: any }) {
   const url =
     `https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/` +
-    `${voice['language']['family']}/` +
-    `${voice['language']['code']}/` +
-    `${voice['name']}/` +
-    `${voice['quality']}/samples/speaker_0.mp3?download=true`;
+    `${voice["language"]["family"]}/` +
+    `${voice["language"]["code"]}/` +
+    `${voice["name"]}/` +
+    `${voice["quality"]}/samples/speaker_0.mp3?download=true`;
 
   try {
     const response = await axios.get(url, {
-      responseType: 'blob',
+      responseType: "blob",
     });
     return response.data;
   } catch (error) {
@@ -71,7 +71,7 @@ export async function DeleteAssistant(assistantId: string) {
   try {
     const response = await axios.delete(`${BASE_URL}/delete_assistant`, {
       data: assistantId,
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { "Content-Type": "text/plain" },
     });
     return response.data;
   } catch (error) {
@@ -99,7 +99,9 @@ export async function PostCustomCommand(data: any) {
 
 export async function DeleteCustomCommand(key: string) {
   try {
-    const response = await axios.delete(`${BASE_URL}/custom_command`, { data: key });
+    const response = await axios.delete(`${BASE_URL}/custom_command`, {
+      data: key,
+    });
     return response.data;
   } catch (error) {
     return HandleError(error);

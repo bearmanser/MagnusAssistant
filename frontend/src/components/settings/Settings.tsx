@@ -37,11 +37,29 @@ export function Settings() {
 
   useEffect(() => {
     GetConfig().then((r) => {
-      setConfig(r);
-      setInitialConfig(r);
+      if (!r.error) {
+        setConfig(r);
+        setInitialConfig(r);
+      } else {
+        toast({
+          title: "Error getting config.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     });
     GetOpenaiModels().then((r) => {
-      setModels(r.models);
+      if (!r.error) {
+        setModels(r.models);
+      } else {
+        toast({
+          title: "Error getting OpenAI models.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     });
   }, []);
 

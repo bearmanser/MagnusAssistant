@@ -1,4 +1,4 @@
-import { Box, Button, Flex } from "@chakra-ui/react";
+import { Box, Button, Flex, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { GetConfig } from "../../ApiService";
 import { AssistantsType } from "../../dto";
@@ -6,10 +6,20 @@ import { AssistantCard } from "./AssistantCard";
 
 export function AssistantConfiguration() {
   const [assistants, setAssistants] = useState<AssistantsType>({});
+  const toast = useToast();
 
   useEffect(() => {
     GetConfig().then((r) => {
-      setAssistants(r.assistants);
+      if(!r.error){
+        setAssistants(r.assistants);
+      }else{
+        toast({
+          title: "Error getting assistants.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     });
   }, []);
 

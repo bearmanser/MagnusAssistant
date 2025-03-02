@@ -18,7 +18,16 @@ export function CustomCommands() {
 
   useEffect(() => {
     GetCustomCommands().then((r) => {
-      setCommands(r);
+      if (!r?.error) {
+        setCommands(r);
+      } else {
+        toast({
+          title: "Error getting commands.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     });
   }, []);
 

@@ -1,7 +1,8 @@
-import { Box, Flex, Grid, GridItem } from '@chakra-ui/react';
+import { Box, Flex, Text, IconButton, Spinner, VStack } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { MdErrorOutline, MdKeyboardArrowUp } from 'react-icons/md';
 import './styles.css';
+import { IoMdMicOff, IoMdMic } from 'react-icons/io';
 
 export function Interface() {
   const [transcription, setTranscription] = useState<string>('');
@@ -16,6 +17,8 @@ export function Interface() {
   const [audioQueue, setAudioQueue] = useState<(Uint8Array | Uint8Array[])[]>([]);
   const [isProcessingAudio, setIsProcessingAudio] = useState<boolean>(false);
   const [bufferTreshold, setBufferTreshold] = useState<number>(50);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [websocket, setWebsocket] = useState<WebSocket>();
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -33,6 +36,7 @@ export function Interface() {
 
     function connectToWebSocketAndSendAudio() {
       const ws = new WebSocket(`wss://${window.location.hostname}:3002/ws`);
+      setWebsocket(ws);
       ws.binaryType = 'arraybuffer';
 
       ws.onopen = () => {
@@ -259,6 +263,10 @@ export function Interface() {
     }
   }
 
+  function toggleMute(): void {
+    setIsMuted((prevMuted) => !prevMuted);
+  }
+
   return (
     <Flex
       direction="column"
@@ -267,40 +275,76 @@ export function Interface() {
       alignItems="center"
       justifyContent="center"
       style={{
-        transition: 'background-color 0.3s ease-in-out',
-        backgroundColor: showScrollButton ? 'var(--chakra-colors-main-200)' : 'black',
-        cursor: showScrollButton ? 'auto' : 'none',
+        transition: "background-color 0.3s ease-in-out",
+        backgroundColor: showScrollButton
+          ? "var(--chakra-colors-main-200)"
+          : "black",
+        cursor: showScrollButton ? "auto" : "none",
       }}
     >
       {showScrollButton && (
         <MdKeyboardArrowUp
           size={100}
-          color={'var(--chakra-colors-main-400)'}
+          color={"var(--chakra-colors-main-400)"}
           onClick={() => {
             window.scrollTo({
               top: document.body.scrollHeight,
-              behavior: 'smooth',
+              behavior: "smooth",
             });
           }}
         />
       )}
-      <Flex w={'100%'} justifyContent={'end'} align={'center'} color={'red'} gap={4} mr={4}>
-        {false && error && (
+      <Flex
+        w={"100%"}
+        justifyContent={"end"}
+        align={"center"}
+        color={"red"}
+        gap={4}
+        mr={4}
+      >
+        {error && (
           <>
             {error}
             <MdErrorOutline />
           </>
         )}
       </Flex>
-      <Grid templateColumns="repeat(3, 1fr)" gap={6} w={'100%'} h={'100%'}>
-        <GridItem w="100%">
+      {websocket && websocket.readyState === WebSocket.OPEN ? (
+        <>
           <Box
-            className={`mic ${listening ? 'listening' : ''}`}
+            w={"100%"}
+            h={"100%"}
+            className={`mic ${listening ? "listening" : ""}`}
           >
-            <Box opacity={listening ? '100%' : '5%'} className="mic-shadow" />
+            <Box opacity={listening ? "100%" : "5%"} className="mic-shadow" />
           </Box>
-        </GridItem>
-      </Grid>
+          <IconButton
+            aria-label="Mute microphone"
+            position={"absolute"}
+            width={"100px"}
+            height={"100px"}
+            top={"calc(50% - 50px)"}
+            left={"calc(50% - 50px)"}
+            zIndex={999}
+            onClick={toggleMute}
+            color={"main.400"}
+            bg={"null"}
+            icon={
+              isMuted ? (
+                <IoMdMicOff size={"100px"} />
+              ) : (
+                <IoMdMic size={"100px"} />
+              )
+            }
+            opacity={showScrollButton ? "1" : "0.1"}
+          />
+        </>
+      ) : (
+        <VStack spacing={4} w={"100%"} h={"100%"} justifyContent={"center"}>
+          <Spinner />
+          <Text>Websocket connecting...</Text>
+        </VStack>
+      )}
     </Flex>
   );
 }
