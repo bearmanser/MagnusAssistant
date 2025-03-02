@@ -1,30 +1,33 @@
-import { Box, Flex, Text, IconButton, Spinner, VStack } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { MdErrorOutline, MdKeyboardArrowUp } from 'react-icons/md';
-import './styles.css';
-import { IoMdMicOff, IoMdMic } from 'react-icons/io';
+import { Box, Flex, Text, IconButton, Spinner, VStack } from "@chakra-ui/react";
+import { useEffect, useRef, useState } from "react";
+import { MdErrorOutline, MdKeyboardArrowUp } from "react-icons/md";
+import "./styles.css";
+import { IoMdMicOff, IoMdMic } from "react-icons/io";
 
 export function Interface() {
-  const [transcription, setTranscription] = useState<string>('');
-  const [response, setResponse] = useState<string>('');
+  const [transcription, setTranscription] = useState<string>("");
+  const [response, setResponse] = useState<string>("");
   const [listening, setListening] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [showScrollButton, setShowScrollButton] = useState(true);
   const [audioBuffer, setAudioBuffer] = useState<Uint8Array[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [sampleRate] = useState<number>(22050);
-  const [audioQueue, setAudioQueue] = useState<(Uint8Array | Uint8Array[])[]>([]);
+  const [audioQueue, setAudioQueue] = useState<(Uint8Array | Uint8Array[])[]>(
+    []
+  );
   const [isProcessingAudio, setIsProcessingAudio] = useState<boolean>(false);
   const [bufferTreshold, setBufferTreshold] = useState<number>(50);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [websocket, setWebsocket] = useState<WebSocket>();
+  const isMutedRef = useRef<boolean>(false);
+  const [websocketOpen, setWebsocketOpen] = useState<boolean>();
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      setTranscription('');
-      setResponse('');
-      setError('');
+      setTranscription("");
+      setResponse("");
+      setError("");
     }, 60000);
 
     return () => clearTimeout(timeoutId);
@@ -36,36 +39,36 @@ export function Interface() {
 
     function connectToWebSocketAndSendAudio() {
       const ws = new WebSocket(`wss://${window.location.hostname}:3002/ws`);
-      setWebsocket(ws);
-      ws.binaryType = 'arraybuffer';
+      ws.binaryType = "arraybuffer";
 
       ws.onopen = () => {
-        console.log('WebSocket connection is open');
+        console.log("WebSocket connection is open");
+        setWebsocketOpen(true);
       };
 
       ws.onmessage = async (event) => {
-        if (typeof event.data === 'string') {
+        if (typeof event.data === "string") {
           try {
             const model_payload = JSON.parse(event.data);
 
-            if ('activation' in model_payload) {
+            if ("activation" in model_payload) {
               setListening(true);
             }
 
-            if ('transcription' in model_payload) {
-              setTranscription(model_payload['transcription']);
+            if ("transcription" in model_payload) {
+              setTranscription(model_payload["transcription"]);
               setListening(false);
             }
 
-            if ('response' in model_payload) {
-              setResponse(model_payload['response']);
+            if ("response" in model_payload) {
+              setResponse(model_payload["response"]);
             }
 
-            if ('stop_listening' in model_payload) {
+            if ("stop_listening" in model_payload) {
               setListening(false);
             }
 
-            if ('__END_OF_STREAM__' in model_payload) {
+            if ("__END_OF_STREAM__" in model_payload) {
               setBufferTreshold(1);
             }
           } catch (e) {
@@ -79,19 +82,24 @@ export function Interface() {
       };
 
       ws.onclose = () => {
-        console.log('WebSocket connection closed');
-        connectToWebSocketAndSendAudio();
+        console.log("WebSocket connection closed");
+        setWebsocketOpen(false);
+        setTimeout(() => {
+          connectToWebSocketAndSendAudio();
+        }, 1000);
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error("WebSocket error:", error);
       };
 
-      function sendAudioData(audioData: string | ArrayBuffer | Blob | ArrayBufferView) {
-        if (ws.readyState === WebSocket.OPEN) {
+      function sendAudioData(
+        audioData: string | ArrayBuffer | Blob | ArrayBufferView
+      ) {
+        if (!isMutedRef.current && ws.readyState === WebSocket.OPEN) {
           ws.send(audioData);
         } else {
-          setError('WebSocket connection failed.');
+          setError("WebSocket connection failed.");
         }
       }
 
@@ -103,7 +111,11 @@ export function Interface() {
               const audioContext = new AudioContext();
               const audioInput = audioContext.createMediaStreamSource(stream);
               const bufferSize = 8192;
-              const recorder = audioContext.createScriptProcessor(bufferSize, 1, 1);
+              const recorder = audioContext.createScriptProcessor(
+                bufferSize,
+                1,
+                1
+              );
 
               recorder.onaudioprocess = function (event) {
                 const samples = event.inputBuffer.getChannelData(0);
@@ -113,7 +125,9 @@ export function Interface() {
                 });
 
                 const int16Array = new Int16Array(PCM16iSamples);
-                const blob = new Blob([int16Array], { type: 'application/octet-stream' });
+                const blob = new Blob([int16Array], {
+                  type: "application/octet-stream",
+                });
                 sendAudioData(blob);
               };
 
@@ -124,10 +138,10 @@ export function Interface() {
               ws.send(sampleRate.toString());
             })
             .catch(function (err) {
-              setError('Error capturing audio.');
+              setError("Error capturing audio.");
             });
         } else {
-          setError('getUserMedia is not supported.');
+          setError("getUserMedia is not supported.");
         }
       }
 
@@ -151,19 +165,27 @@ export function Interface() {
         setShowScrollButton(false);
       }
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   useEffect(() => {
-    console.log('Audio buffer length:', audioBuffer.length);
-    if (audioBuffer.length >= bufferTreshold && !isPlaying && audioContext && !isProcessingAudio) {
+    console.log("Audio buffer length:", audioBuffer.length);
+    if (
+      audioBuffer.length >= bufferTreshold &&
+      !isPlaying &&
+      audioContext &&
+      !isProcessingAudio
+    ) {
       setIsProcessingAudio(true);
       const concatenatedBuffer = new Uint8Array(
-        audioBuffer.reduce((acc: number[], val) => acc.concat(Array.from(val)), []),
+        audioBuffer.reduce(
+          (acc: number[], val) => acc.concat(Array.from(val)),
+          []
+        )
       );
       setAudioBuffer([]);
 
@@ -173,7 +195,14 @@ export function Interface() {
         playAudio(concatenatedBuffer);
       }
     }
-  }, [audioBuffer, audioContext, sampleRate, isPlaying, isProcessingAudio, bufferTreshold]);
+  }, [
+    audioBuffer,
+    audioContext,
+    sampleRate,
+    isPlaying,
+    isProcessingAudio,
+    bufferTreshold,
+  ]);
 
   const playAudio = (buffer: Uint8Array | Uint8Array[]) => {
     const fadeDuration = 0.05;
@@ -182,7 +211,9 @@ export function Interface() {
       buffer = [buffer];
     }
 
-    const concatenatedBuffer = new Uint8Array(buffer.reduce((acc: number[], val) => acc.concat(Array.from(val)), []));
+    const concatenatedBuffer = new Uint8Array(
+      buffer.reduce((acc: number[], val) => acc.concat(Array.from(val)), [])
+    );
     const wavBuffer = createWavHeader(concatenatedBuffer, sampleRate);
 
     audioContext
@@ -191,7 +222,10 @@ export function Interface() {
         const source = audioContext.createBufferSource();
         const gainNode = audioContext.createGain();
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + fadeDuration);
+        gainNode.gain.linearRampToValueAtTime(
+          1,
+          audioContext.currentTime + fadeDuration
+        );
 
         source.buffer = decodedData;
         source.connect(gainNode);
@@ -204,7 +238,10 @@ export function Interface() {
         setTimeout(
           () => {
             gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + fadeDuration);
+            gainNode.gain.linearRampToValueAtTime(
+              0,
+              audioContext.currentTime + fadeDuration
+            );
             setTimeout(() => {
               if (audioQueue.length > 0) {
                 const nextAudio = audioQueue[0];
@@ -216,11 +253,11 @@ export function Interface() {
               }
             }, fadeDuration * 1000);
           },
-          duration - fadeDuration * 1000,
+          duration - fadeDuration * 1000
         );
       })
       .catch((error) => {
-        console.error('Error decoding audio data:', error);
+        console.error("Error decoding audio data:", error);
         setIsProcessingAudio(false);
       });
   };
@@ -235,11 +272,11 @@ export function Interface() {
     const buffer = new ArrayBuffer(44 + samples.length);
     const view = new DataView(buffer);
 
-    writeString(view, 0, 'RIFF');
+    writeString(view, 0, "RIFF");
     view.setUint32(4, 36 + dataSize, true);
-    writeString(view, 8, 'WAVE');
+    writeString(view, 8, "WAVE");
 
-    writeString(view, 12, 'fmt ');
+    writeString(view, 12, "fmt ");
     view.setUint32(16, 16, true);
     view.setUint16(20, 1, true);
     view.setUint16(22, numChannels, true);
@@ -248,7 +285,7 @@ export function Interface() {
     view.setUint16(32, blockAlign, true);
     view.setUint16(34, bitsPerSample, true);
 
-    writeString(view, 36, 'data');
+    writeString(view, 36, "data");
     view.setUint32(40, dataSize, true);
 
     const samplesView = new Uint8Array(buffer, 44);
@@ -264,7 +301,8 @@ export function Interface() {
   }
 
   function toggleMute(): void {
-    setIsMuted((prevMuted) => !prevMuted);
+    setIsMuted(!isMuted);
+    isMutedRef.current = !isMuted;
   }
 
   return (
@@ -309,7 +347,7 @@ export function Interface() {
           </>
         )}
       </Flex>
-      {websocket && websocket.readyState === WebSocket.OPEN ? (
+      {websocketOpen ? (
         <>
           <Box
             w={"100%"}
