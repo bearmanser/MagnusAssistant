@@ -58,7 +58,7 @@ To enable Twilio phone call support, follow these steps:
 ```https://your-server-url/sms-webhook```
 5. **Configure Twilio Settings in the Web GUI**:
    - Set the **Base URL** (e.g., `https://your-server-url`).
-   - Enter the **Twilio Account SID**, **Auth Token** and **Phone Number SID**.
+   - Enter the **Twilio Account SID** and **Auth Token**.
    - Select which assistant should answer calls.
 
 ## Home Assistant Integration
