@@ -92,8 +92,39 @@ async def ws_handler(request):
             print("WebSocket connection error:", e)
     finally:
         try:
+            CLIENT = Client(
+                get_config_value("twilio.account_sid"), get_config_value("twilio.auth_token")
+            )
+            if local_call_sid:
+                twiml_response = f"""<Response>
+                                            <Play>{get_config_value('twilio.base_url')}/stream_end_audio</Play>
+                                            <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
+                                        </Response>"""
+                try:
+                    CLIENT.calls(local_call_sid).update(twiml=twiml_response)
+                    print(f"Updated call {local_call_sid} with redirect to /next-twiml.")
+                except Exception as e:
+                    print("Error updating call:", e)
+            else:
+                if active_stream["call_sid"]:
+                    try:
+                        CLIENT.calls(active_stream["call_sid"]).update(
+                            twiml=f"""<Response>
+                                            <Play>{get_config_value('twilio.base_url')}/stream_end_audio</Play>
+                                            <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
+                                        </Response>"""
+                        )
+                        print(
+                            f"Updated call {active_stream['call_sid']} with redirect to /next-twiml."
+                        )
+                    except Exception as e:
+                        print("Error updating call with global call_sid:", e)
+                else:
+                    print("No call SID available; cannot update call with new TwiML.")
             if transcription:
-                ASSISTANT = get_config_value(f'assistants.{get_config_value("twilio.assistant")}')
+                ASSISTANT = get_config_value(
+                    f'assistants.{get_config_value("twilio.assistant")}'
+                )
                 asyncio.create_task(
                     ask_openai(transcription, None, ASSISTANT, send_to_websocket=False)
                 )
@@ -103,39 +134,18 @@ async def ws_handler(request):
         stream_available.set()
         if active_stream["ws"] == ws:
             active_stream["ws"] = None
-
-    CLIENT = Client(get_config_value("twilio.account_sid"), get_config_value("twilio.auth_token"))
-    if local_call_sid:
-        twiml_response = f"""<Response>
-                                    <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
-                                </Response>"""
-        try:
-            CLIENT.calls(local_call_sid).update(twiml=twiml_response)
-            print(f"Updated call {local_call_sid} with redirect to /next-twiml.")
-        except Exception as e:
-            print("Error updating call:", e)
-    else:
-        if active_stream["call_sid"]:
-            try:
-                CLIENT.calls(active_stream["call_sid"]).update(
-                    twiml=f"""<Response>
-                                    <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
-                                </Response>"""
-                )
-                print(
-                    f"Updated call {active_stream['call_sid']} with redirect to /next-twiml."
-                )
-            except Exception as e:
-                print("Error updating call with global call_sid:", e)
-        else:
-            print("No call SID available; cannot update call with new TwiML.")
     return ws
 
 
 def delete_all_audio_files():
     try:
         for file in os.listdir(AUDIO_FOLDER):
-            if file.endswith(".wav") and file != "greeting.wav" and file != "recorded_audio.wav":
+            if file.endswith(".wav") and file not in [
+                "greeting.wav",
+                "recorded_audio.wav",
+                "stream_start.wav",
+                "stream_end.wav",
+            ]:
                 os.remove(os.path.join(AUDIO_FOLDER, file))
         print("All audio files deleted.")
     except Exception as e:
@@ -162,9 +172,35 @@ async def serve_audio(request):
 async def greeting(request):
     filename = os.path.join(AUDIO_FOLDER, "greeting.wav")
     if not os.path.exists(filename):
-        ASSISTANT = get_config_value(f'assistants.{get_config_value("twilio.assistant")}')
-        await run_piper_save_to_file(ASSISTANT, "Hello there, how can i help you?", file_name="greeting.wav")
+        ASSISTANT = get_config_value(
+            f'assistants.{get_config_value("twilio.assistant")}'
+        )
+        await run_piper_save_to_file(
+            ASSISTANT, "Hello there, how can i help you?", file_name="greeting.wav"
+        )
 
+    try:
+        with open(filename, "rb") as f:
+            file_data = f.read()
+        return web.Response(body=file_data, content_type="audio/wav")
+    except Exception as e:
+        print(f"Error serving file {filename}: {e}")
+        return web.Response(status=500, text="Error serving file.")
+
+
+async def stream_start_audio(request):
+    filename = os.path.join(AUDIO_FOLDER, "stream_start.wav")
+    try:
+        with open(filename, "rb") as f:
+            file_data = f.read()
+        return web.Response(body=file_data, content_type="audio/wav")
+    except Exception as e:
+        print(f"Error serving file {filename}: {e}")
+        return web.Response(status=500, text="Error serving file.")
+
+
+async def stream_end_audio(request):
+    filename = os.path.join(AUDIO_FOLDER, "stream_end.wav")
     try:
         with open(filename, "rb") as f:
             file_data = f.read()
@@ -183,8 +219,19 @@ async def next_twiml(request):
     try:
         files = os.listdir(AUDIO_FOLDER)
         audio_files = sorted(
-            [file for file in files if file.endswith(".wav") and file != "greeting.wav" and file != "recorded_audio.wav"], 
-            key=lambda x: int(os.path.splitext(x)[0])
+            [
+                file
+                for file in files
+                if file.endswith(".wav")
+                and file
+                not in [
+                    "greeting.wav",
+                    "recorded_audio.wav",
+                    "stream_start.wav",
+                    "stream_end.wav",
+                ]
+            ],
+            key=lambda x: int(os.path.splitext(x)[0]),
         )
     except Exception as e:
         print(f"Error listing audio files: {e}")
@@ -192,7 +239,10 @@ async def next_twiml(request):
 
     if audio_files:
         play_tags = "\n".join(
-            [f"<Play>{get_config_value('twilio.base_url')}/audio/{file}</Play>" for file in audio_files]
+            [
+                f"<Play>{get_config_value('twilio.base_url')}/audio/{file}</Play>"
+                for file in audio_files
+            ]
         )
         twiml_response = f"""<Response>
                                 {play_tags}
@@ -207,8 +257,12 @@ async def next_twiml(request):
             stream_available.set()
             await asyncio.sleep(0.5)
         stream_available.clear()
-        wss_url = get_config_value('twilio.base_url').replace("https://", "wss://") + "/stream"
-        twiml_response = f"""<Response>
+        wss_url = (
+            get_config_value("twilio.base_url").replace("https://", "wss://")
+            + "/stream"
+        )
+        twiml_response = f"""<Response>  
+                                <Play>{get_config_value('twilio.base_url')}/stream_start_audio</Play>
                                 <Start>
                                     <Stream url="{wss_url}">
                                         <Parameter name="callSid" value="{active_stream["call_sid"]}" />
@@ -224,6 +278,9 @@ async def next_twiml(request):
 app = web.Application()
 app.router.add_get("/stream", ws_handler)
 app.router.add_get("/audio/{file}", serve_audio)
+app.router.add_get("/greeting", greeting)
+app.router.add_get("/stream_start_audio", stream_start_audio)
+app.router.add_get("/stream_end_audio", stream_end_audio)
 app.router.add_get("/greeting", greeting)
 app.router.add_post("/next-twiml", next_twiml)
 

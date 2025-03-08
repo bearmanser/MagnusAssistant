@@ -18,7 +18,7 @@ def get_total_duration(folder):
     total_duration = 0
     for filename in os.listdir(folder):
         base, ext = os.path.splitext(filename)
-        if ext.lower() == ".wav" and base != "greeting" and base != "recorded_audio":
+        if ext.lower() == ".wav" and base not in ["greeting", "recorded_audio", "stream_start", "stream_end"]:
             file_path = os.path.join(folder, filename)
             try:
                 with wave.open(file_path, "rb") as wav_file:

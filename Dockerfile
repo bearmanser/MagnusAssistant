@@ -44,6 +44,7 @@ COPY transcribe/ /app/transcribe/
 COPY wake_word/ /app/wake_word/
 COPY websocket/ /app/websocket/
 COPY twilio_socket/ /app/twilio_socket/
+COPY audio_files/ /app/audio_files/
 
 # Copy Python files and requirements
 COPY main.py /app/
