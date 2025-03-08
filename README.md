@@ -54,9 +54,11 @@ To enable Twilio phone call support, follow these steps:
 </Response>
 ```
 3. Go to Phone Numbers -> Manage -> Active numbers, configure your number to use the TwiML App.
-4. **Configure Twilio Settings in the Web GUI**:
+4. On the same page, scroll down to Messaging Configuration and add the url to "A message comes in" webhook
+```https://your-server-url/sms-webhook```
+5. **Configure Twilio Settings in the Web GUI**:
    - Set the **Base URL** (e.g., `https://your-server-url`).
-   - Enter the **Twilio Account SID** and **Auth Token**.
+   - Enter the **Twilio Account SID**, **Auth Token** and **Phone Number SID**.
    - Select which assistant should answer calls.
 
 ## Home Assistant Integration
