@@ -53,7 +53,8 @@ To enable Twilio phone call support, follow these steps:
   <Pause length="3600"/>
 </Response>
 ```
-3. **Configure Twilio Settings in the Web GUI**:
+3. Go to Phone Numbers -> Manage -> Active numbers, configure your number to use the TwiML App.
+4. **Configure Twilio Settings in the Web GUI**:
    - Set the **Base URL** (e.g., `https://your-server-url`).
    - Enter the **Twilio Account SID** and **Auth Token**.
    - Select which assistant should answer calls.
