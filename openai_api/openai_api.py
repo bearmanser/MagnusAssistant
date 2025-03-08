@@ -113,7 +113,13 @@ def trim_conversation_history(messages, token_limit, assistant, lifetime=2):
 
 
 async def ask_openai(
-    message: str, ws, assistant, role: str = "user", function_name: str = None, send_to_websocket: bool = True
+    message: str,
+    ws,
+    assistant,
+    role: str = "user",
+    function_name: str = None,
+    send_to_websocket: bool = True,
+    return_response: bool = False,
 ):
     global conversation_history
 
@@ -151,7 +157,9 @@ async def ask_openai(
         for chunk in response_stream:
             if chunk.choices[0].delta.content:
                 current_message += chunk.choices[0].delta.content
-                await process_response(current_message, ws, assistant, send_to_websocket)
+                await process_response(
+                    current_message, ws, assistant, send_to_websocket
+                )
 
             if chunk.choices[0].delta.function_call:
                 if chunk.choices[0].delta.function_call.name:
@@ -162,7 +170,10 @@ async def ask_openai(
                     ].delta.function_call.arguments
 
         if current_message:
-            await process_response(current_message + "\n", ws, assistant, send_to_websocket)
+            if not return_response:
+                await process_response(
+                    current_message + "\n", ws, assistant, send_to_websocket
+                )
             conversation_history.append(add_message("assistant", current_message))
 
         if function_call_name and function_call_arguments_str:
@@ -171,19 +182,30 @@ async def ask_openai(
                 print(
                     f"Function call triggered: {function_call_name} with arguments {function_arguments}"
                 )
-                process_function_call(
-                    function_call_name, function_arguments, ws, assistant, send_to_websocket
+                function_call_response = await process_function_call(
+                    function_call_name,
+                    function_arguments,
+                    ws,
+                    assistant,
+                    send_to_websocket,
+                    return_response,
                 )
+                if function_call_response and return_response:
+                    current_message = function_call_response
             except json.JSONDecodeError as e:
                 print(f"JSON decode error after accumulation: {e}")
             except Exception as e:
                 print(f"Unexpected error: {e}")
+        if return_response:
+            return current_message
         return
     except Exception as e:
         print(e)
 
 
-def process_function_call(function_name, function_arguments, ws, assistant, send_to_websocket):
+async def process_function_call(
+    function_name, function_arguments, ws, assistant, send_to_websocket, return_response
+):
     module = importlib.import_module(f"custom_functions.scripts.{function_name}")
     importlib.reload(module)
     function_to_call = getattr(module, function_name)
@@ -201,12 +223,14 @@ def process_function_call(function_name, function_arguments, ws, assistant, send
     except Exception as e:
         result = {"error": str(e), "type": type(e).__name__}
 
-    asyncio.create_task(
-        ask_openai(
-            json.dumps(result),
-            ws,
-            assistant,
-            role="function",
-            function_name=function_name, send_to_websocket=send_to_websocket
-        )
+    openai_response = await ask_openai(
+        json.dumps(result),
+        ws,
+        assistant,
+        role="function",
+        function_name=function_name,
+        send_to_websocket=send_to_websocket,
+        return_response=return_response,
     )
+    if return_response:
+        return openai_response

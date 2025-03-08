@@ -274,6 +274,20 @@ async def next_twiml(request):
 
     return web.Response(text=twiml_response, content_type="application/xml")
 
+async def sms_webhook(request):
+    data = await request.post()
+    from_number = data.get("From")
+    message_body = data.get("Body")
+    
+    print(f"Received SMS from {from_number}: {message_body}")
+
+    ASSISTANT = get_config_value(
+        f'assistants.{get_config_value("twilio.assistant")}'
+    )
+    response_message = await ask_openai(message_body, None, ASSISTANT, send_to_websocket=False, return_response=True)
+
+    return web.Response(text=response_message, status=200)
+
 
 app = web.Application()
 app.router.add_get("/stream", ws_handler)
@@ -283,6 +297,7 @@ app.router.add_get("/stream_start_audio", stream_start_audio)
 app.router.add_get("/stream_end_audio", stream_end_audio)
 app.router.add_get("/greeting", greeting)
 app.router.add_post("/next-twiml", next_twiml)
+app.router.add_post("/sms-webhook", sms_webhook)
 
 
 def start_twilio():
