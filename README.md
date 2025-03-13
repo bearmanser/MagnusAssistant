@@ -95,3 +95,6 @@ Once running, access the interface at **[http://localhost:3000](http://localhost
 
 ## License
 This project is licensed under the **Apache 2.0 License**. See [LICENSE](LICENSE) for details.
+
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/oddmagnusgrinder)
