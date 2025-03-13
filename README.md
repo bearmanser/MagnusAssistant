@@ -27,14 +27,14 @@ git clone https://github.com/bearmanser/MagnusAssistant
 cd MagnusAssistant
 
 # Create a virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Run the assistant
-python main.py
+python3 main.py
 ```
 
 ### Using Docker
