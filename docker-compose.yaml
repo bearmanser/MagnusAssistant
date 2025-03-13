@@ -4,13 +4,16 @@ services:
     build: .
     container_name: virtual-assistant
     restart: unless-stopped
+    environment:
+      - HOME_ASSISTANT_URL=
+      - HOME_ASSISTANT_TOKEN=
     ports:
       - "3000:3000"
       - "3001:3001"
       - "3002:3002"
       - "3003:3003"
     volumes:
-      - .:/app
+      - ./config:/app/config
     deploy:
       resources:
         reservations:

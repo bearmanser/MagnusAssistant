@@ -5,7 +5,7 @@ import time
 import io
 import platform
 
-model = WhisperModel("medium")
+model = WhisperModel("medium", device="cuda", compute_type="int8_float16")
 
 if platform.system() == "Windows":
     AudioSegment.converter = which("transcribe/ffmpeg.exe")

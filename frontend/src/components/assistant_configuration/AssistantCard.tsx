@@ -304,7 +304,7 @@ export function AssistantCard({
             </Flex>
           </Box>
           <Box>
-            <Text>Wake word sensitivity</Text>
+            <Text>{"Wake word sensitivity (lower is more sensitive)"} </Text>
             <Input
               placeholder="0.5 usally works well"
               type="number"

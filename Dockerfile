@@ -1,7 +1,7 @@
 # Use an appropriate base image (Python + Node.js)
 FROM python:3.10-slim
 
-# Set noninteractive mode for apt
+# Set non-interactive mode to prevent user prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install basic dependencies
@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     wget \
     gnupg \
-    ca-certificates && \
+    npm \
+    ca-certificates && \ 
     apt-get clean
 
 # Add NVIDIA's package repository
