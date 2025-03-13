@@ -1,5 +1,3 @@
-
-
 # Virtual Assistant
 
 This is a customizable virtual assistant powered by ChatGPT. You can set up your own assistant with a unique personality, voice, and wake word. It supports multiple assistants running simultaneously and allows you to write custom Python functions that the assistant can call when needed. You can even call or text the assistant over the phone.
@@ -14,7 +12,12 @@ This is a customizable virtual assistant powered by ChatGPT. You can set up your
 - **Multi-Language Support**: Communicate in different languages.
 - **Easy Setup**: Quick and straightforward installation.
 
+
+
 ## Installation
+  
+> **An NVIDIA GPU with CUDA support (Compute Capability X.X or higher) is required. Most recent NVIDIA GPUs support this, but other GPU brands are not compatible. You must also have the appropriate NVIDIA driver installed for CUDA to function properly. Download the latest drivers from [NVIDIA's official website](https://www.nvidia.com/en-us/drivers/). Additionally, the NVIDIA Container Toolkit must be installed. Follow the installation guide at [NVIDIA Container Toolkit Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).**
+
 ### Using Python
 > **Requirements**: Python **3.10** is required.
 
@@ -39,21 +42,8 @@ python main.py
 git clone https://github.com/bearmanser/MagnusAssistant
 cd MagnusAssistant
 
-docker-compose up --build
+docker-compose up -d --build
 ```
-
-> **Note:** This project is **highly recommended** to be run with an **NVIDIA GPU** for optimal performance.  
-> If you're not using an NVIDIA GPU, you may need to remove the following section from `docker-compose.yaml` before running `docker-compose up --build`:  
-> ```yaml
-> deploy:
->   resources:
->     reservations:
->       devices:
->         - driver: nvidia
->           count: 1
->           capabilities: ["gpu"]
-> ```
-> Otherwise, Docker may fail to start the container due to missing GPU support.
 
 ## Twilio Setup
 To enable Twilio phone call and SMS support, follow these steps:
@@ -90,10 +80,13 @@ Set the following environment variables to enable Home Assistant integration:
 export HOME_ASSISTANT_URL="http://your-home-assistant.local:8123"
 export HOME_ASSISTANT_TOKEN="your-home-assistant-token"
 ```
-Or in a `.env` file:
-```
-HOME_ASSISTANT_URL=http://your-home-assistant.local:8123
-HOME_ASSISTANT_TOKEN=your-home-assistant-token
+Or in docker-compose.yaml:
+```yaml
+services:
+  virtual-assistant:
+    environment:
+      - HOME_ASSISTANT_URL=http://your-home-assistant.local:8123     #Edit these fields
+      - HOME_ASSISTANT_TOKEN=your-home-assistant-token               #Edit these fields
 ```
 
 ## Usage
