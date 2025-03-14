@@ -27,7 +27,7 @@ def calculate_dynamic_threshold(audio_segment):
     noise_floor = audio_segment[:1000].dBFS 
     return noise_floor + 10
 
-def listen(msg, sample_rate):
+def listen(msg, sample_rate, return_audio_segment=False):
     global audio_buffer, dynamic_threshold, last_listen_time
     
     current_time = time.time()
@@ -74,6 +74,8 @@ def listen(msg, sample_rate):
             audio_segment.export("audio_files/recorded_audio.wav", format="wav")
             audio_buffer.clear()
             dynamic_threshold = None
+            if return_audio_segment:
+                return audio_segment
             return transcribe(audio_segment)
     
     return None

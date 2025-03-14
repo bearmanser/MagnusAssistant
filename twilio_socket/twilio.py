@@ -6,6 +6,7 @@ import time
 import audioop
 import os
 from aiohttp import web
+from transcribe.transcribe import transcribe
 from twilio.rest import Client
 
 from config.config import get_config_value
@@ -77,8 +78,53 @@ async def ws_handler(request):
                             if payload:
                                 raw_audio = base64.b64decode(payload)
                                 pcm_chunk = audioop.ulaw2lin(raw_audio, 2)
-                                transcription = listen(pcm_chunk, 8000)
-                                if transcription:
+                                transcription_audio_segment = listen(pcm_chunk, 8000, return_audio_segment=True)
+                                if transcription_audio_segment:
+                                    transcription = transcribe(transcription_audio_segment)
+                                    
+                                    try:
+                                        CLIENT = Client(
+                                            get_config_value("twilio.account_sid"), get_config_value("twilio.auth_token")
+                                        )
+                                        if local_call_sid:
+                                            twiml_response = f"""<Response>
+                                                                        <Play>{get_config_value('twilio.base_url')}/stream_end_audio</Play>
+                                                                        <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
+                                                                    </Response>"""
+                                            try:
+                                                CLIENT.calls(local_call_sid).update(twiml=twiml_response)
+                                                print(f"Updated call {local_call_sid} with redirect to /next-twiml.")
+                                            except Exception as e:
+                                                print("Error updating call:", e)
+                                        else:
+                                            if active_stream["call_sid"]:
+                                                try:
+                                                    CLIENT.calls(active_stream["call_sid"]).update(
+                                                        twiml=f"""<Response>
+                                                                        <Play>{get_config_value('twilio.base_url')}/stream_end_audio</Play>
+                                                                        <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
+                                                                    </Response>"""
+                                                    )
+                                                    print(
+                                                        f"Updated call {active_stream['call_sid']} with redirect to /next-twiml."
+                                                    )
+                                                except Exception as e:
+                                                    print("Error updating call with global call_sid:", e)
+                                            else:
+                                                print("No call SID available; cannot update call with new TwiML.")
+                                        if transcription:
+                                            ASSISTANT = get_config_value(
+                                                f'assistants.{get_config_value("twilio.assistant")}'
+                                            )
+                                            asyncio.create_task(
+                                                ask_openai(transcription, None, ASSISTANT, send_to_websocket=False)
+                                            )
+                                    except Exception as file_err:
+                                        print("Error processing transcription:", file_err)
+                                    await ws.close()
+                                    stream_available.set()
+                                    if active_stream["ws"] == ws:
+                                        active_stream["ws"] = None
                                     break
                     except Exception as e:
                         print("Error processing message:", e)
@@ -90,50 +136,6 @@ async def ws_handler(request):
     except Exception as e:
         if not ws.closed:
             print("WebSocket connection error:", e)
-    finally:
-        try:
-            CLIENT = Client(
-                get_config_value("twilio.account_sid"), get_config_value("twilio.auth_token")
-            )
-            if local_call_sid:
-                twiml_response = f"""<Response>
-                                            <Play>{get_config_value('twilio.base_url')}/stream_end_audio</Play>
-                                            <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
-                                        </Response>"""
-                try:
-                    CLIENT.calls(local_call_sid).update(twiml=twiml_response)
-                    print(f"Updated call {local_call_sid} with redirect to /next-twiml.")
-                except Exception as e:
-                    print("Error updating call:", e)
-            else:
-                if active_stream["call_sid"]:
-                    try:
-                        CLIENT.calls(active_stream["call_sid"]).update(
-                            twiml=f"""<Response>
-                                            <Play>{get_config_value('twilio.base_url')}/stream_end_audio</Play>
-                                            <Redirect>{get_config_value("twilio.base_url")}/next-twiml</Redirect>
-                                        </Response>"""
-                        )
-                        print(
-                            f"Updated call {active_stream['call_sid']} with redirect to /next-twiml."
-                        )
-                    except Exception as e:
-                        print("Error updating call with global call_sid:", e)
-                else:
-                    print("No call SID available; cannot update call with new TwiML.")
-            if transcription:
-                ASSISTANT = get_config_value(
-                    f'assistants.{get_config_value("twilio.assistant")}'
-                )
-                asyncio.create_task(
-                    ask_openai(transcription, None, ASSISTANT, send_to_websocket=False)
-                )
-        except Exception as file_err:
-            print("Error processing transcription:", file_err)
-        await ws.close()
-        stream_available.set()
-        if active_stream["ws"] == ws:
-            active_stream["ws"] = None
     return ws
 
 
