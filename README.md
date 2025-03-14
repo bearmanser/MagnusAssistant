@@ -16,26 +16,8 @@ This is a customizable virtual assistant powered by ChatGPT. You can set up your
 
 ## Installation
   
-> **An NVIDIA GPU with CUDA support (Compute Capability X.X or higher) is required. Most recent NVIDIA GPUs support this, but other GPU brands are not compatible. You must also have the appropriate NVIDIA driver installed for CUDA to function properly. Download the latest drivers from [NVIDIA's official website](https://www.nvidia.com/en-us/drivers/). Additionally, the NVIDIA Container Toolkit must be installed. Follow the installation guide at [NVIDIA Container Toolkit Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).**
+> **An NVIDIA GPU with CUDA support is required. Most recent NVIDIA GPUs support this, but other GPU brands are not compatible. You must also have the appropriate NVIDIA driver installed for CUDA to function properly. Download the latest drivers from [NVIDIA's official website](https://www.nvidia.com/en-us/drivers/). Additionally, you must install the NVIDIA Container Toolkit. Follow the installation guide at [NVIDIA Container Toolkit Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). If you're using WSL, you must install the GPU driver in Windows and the toolkit in WSL.**  
 
-### Using Python
-> **Requirements**: Python **3.10** is required.
-
-```sh
-# Clone the repository
-git clone https://github.com/bearmanser/MagnusAssistant
-cd MagnusAssistant
-
-# Create a virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the assistant
-python3 main.py
-```
 
 ### Using Docker
 ```sh
@@ -61,7 +43,7 @@ To enable Twilio phone call and SMS support, follow these steps:
   <Pause length="3600"/>
 </Response>
 ```
-3. Go to **Phone Numbers** → **Manage** → **Active Numbers**, then configure your number to use the TwiML App.
+3. Go to **Phone Numbers** → **Manage** → **Active Numbers**, then configure your number to use the TwiML Bin.
 4. Under **Messaging Configuration**, set the webhook for "A message comes in" to:
    ```
    https://your-server-url:3003/sms-webhook
@@ -76,11 +58,7 @@ To enable Twilio phone call and SMS support, follow these steps:
 ## Home Assistant Integration
 Set the following environment variables to enable Home Assistant integration:
 
-```sh
-export HOME_ASSISTANT_URL="http://your-home-assistant.local:8123"
-export HOME_ASSISTANT_TOKEN="your-home-assistant-token"
-```
-Or in docker-compose.yaml:
+In docker-compose.yaml:
 ```yaml
 services:
   virtual-assistant:
