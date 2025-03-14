@@ -1,37 +1,51 @@
 # Virtual Assistant
 
-This is a customizable virtual assistant powered by ChatGPT. You can set up your own assistant with a unique personality, voice, and wake word. It supports multiple assistants running simultaneously and allows you to write custom Python functions that the assistant can call when needed. You can even call or text the assistant over the phone.
+A customizable virtual assistant powered by ChatGPT. Define assistants with unique personalities, voices, and wake words. Supports multiple simultaneous assistants, custom Python functions, Home Assistant integration, and phone/SMS interactions via Twilio.
 
 ## Features
-- **Custom Personalities & Voices**: Define different assistants with unique behaviors.
-- **Multiple Assistants**: Run multiple assistants at the same time.
-- **Python Function Calls**: Extend the assistant's capabilities by writing custom functions.
-- **Home Assistant Integration**: Automatically detects devices and services.
-- **Twilio Integration**: Call or send SMS messages to the assistant.
-- **Web GUI**: Interact with the assistant and configure settings through a web interface.
-- **Multi-Language Support**: Communicate in different languages.
-- **Easy Setup**: Quick and straightforward installation.
+- **Custom Personalities & Voices**: Unique assistant behaviors.
+- **Multiple Assistants**: Run concurrently.
+- **Python Function Calls**: Extend capabilities via Python.
+- **Home Assistant Integration**: Automatic device/service detection.
+- **Twilio Integration**: Enable calls/SMS with the assistant.
+- **Web GUI**: Easy interaction and configuration.
+- **Multi-Language Support**: Supports various languages.
+- **Easy Setup**: Quick and simple installation.
 
+## Quick Start Guide
 
+### Prerequisites
+- **NVIDIA GPU with CUDA support**.
+- Latest NVIDIA drivers ([NVIDIA Drivers](https://www.nvidia.com/en-us/drivers/)).
+- NVIDIA Container Toolkit ([Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)).
+- Docker and Docker Compose.
 
-## Installation
-  
-> **An NVIDIA GPU with CUDA support is required. Most recent NVIDIA GPUs support this, but other GPU brands are not compatible. You must also have the appropriate NVIDIA driver installed for CUDA to function properly. Download the latest drivers from [NVIDIA's official website](https://www.nvidia.com/en-us/drivers/). Additionally, you must install the NVIDIA Container Toolkit. Follow the installation guide at [NVIDIA Container Toolkit Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). If you're using WSL, you must install the GPU driver in Windows and the toolkit in WSL.**  
+> **Note:** If you're using WSL, you must install the GPU driver in Windows and the toolkit in WSL.
 
-
-### Using Docker
-```sh
+### Installation
+```bash
 git clone https://github.com/bearmanser/MagnusAssistant
 cd MagnusAssistant
 
 docker-compose up -d --build
 ```
 
-## Twilio Setup
-To enable Twilio phone call and SMS support, follow these steps:
+### Initial Configuration
+1. Open the Web GUI at [http://localhost:3000](http://localhost:3000).
+2. Navigate to **Settings** and configure:
+   - **OpenAI API Key**.
+   - **Twilio** (Account SID, Auth Token, and Base URL).
+3. Under **Assistant Configuration**, define your assistant(s) or use the default.
+4. Optionally, configure custom Python functions under **Custom Commands**. You can create virtually any Python function, and the assistant will automatically understand and utilize it appropriately, enabling integration with almost any service or API.
 
-1. **Sign up** on [Twilio Console](https://www.twilio.com/console) and obtain your **Account SID** and **Auth Token**.
-2. **Set up a TwiML Bin** in the Twilio Console with the following XML:
+### Interacting with the Assistant
+Use the **Interface** tab to speak with your assistant. Say the wake word (default is **"Magnus"**) to begin interaction.
+
+## Twilio Setup (Optional)
+Enable phone and SMS support:
+
+1. [Sign up on Twilio](https://www.twilio.com/console) and get your Account SID and Auth Token.
+2. Navigate to **TwiML Bins** and create a new TwiML Bin with the following XML:
 ```xml
 <Response>
   <Play>https://your-server-url:3003/greeting</Play>
@@ -43,36 +57,26 @@ To enable Twilio phone call and SMS support, follow these steps:
   <Pause length="3600"/>
 </Response>
 ```
-3. Go to **Phone Numbers** → **Manage** → **Active Numbers**, then configure your number to use the TwiML Bin.
-4. Under **Messaging Configuration**, set the webhook for "A message comes in" to:
+3. Go to **Phone Numbers** → **Manage** → **Active Numbers**, select your phone number, and set it to use the TwiML Bin created above.
+4. Under **Messaging Configuration**, set the webhook for incoming messages to:
    ```
    https://your-server-url:3003/sms-webhook
    ```
-5. **Configure Twilio Settings in the Web GUI**:
-   - Set the **Base URL** (e.g., `https://your-server-url:3003`).
-   - Enter the **Twilio Account SID** and **Auth Token**.
-   - Select which assistant should answer calls and SMS messages.
+   > **Note:** The `your-server-url` must be an externally accessible domain (not `localhost`), or use a tunneling service like **ngrok** for local development.
+5. In the Virtual Assistant Web GUI, ensure the **Base URL**, **Twilio Account SID**, and **Auth Token** are configured correctly.
 
-> **Note:** The `your-server-url` must be an externally accessible domain (not `localhost`), or use a tunneling service like **ngrok** for local development.
-
-## Home Assistant Integration
-Set the following environment variables to enable Home Assistant integration:
-
-In docker-compose.yaml:
+## Home Assistant Integration (Optional)
+Configure via environment variables in `docker-compose.yaml`:
 ```yaml
 services:
   virtual-assistant:
     environment:
-      - HOME_ASSISTANT_URL=http://your-home-assistant.local:8123     #Edit these fields
-      - HOME_ASSISTANT_TOKEN=your-home-assistant-token               #Edit these fields
+      - HOME_ASSISTANT_URL=http://your-home-assistant.local:8123
+      - HOME_ASSISTANT_TOKEN=your-home-assistant-token
 ```
 
-## Usage
-The web GUI starts automatically with the server and runs on port `3000`.  
-Once running, access the interface at **[http://localhost:3000](http://localhost:3000)** (or your server's IP if running remotely).  
-
 ## License
-This project is licensed under the **Apache 2.0 License**. See [LICENSE](LICENSE) for details.
-
+Licensed under the [Apache 2.0 License](LICENSE).
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-donate-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/oddmagnusgrinder)
+
